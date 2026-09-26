@@ -33,6 +33,10 @@ struct SettingsStore {
         config.qwenAsrPrompt = values["QWEN_ASR_PROMPT"] ?? ""
         config.qwenAsrSampleRate = values["QWEN_ASR_SAMPLE_RATE"] ?? config.qwenAsrSampleRate
         config.qwenAsrRealtimeBaseUrl = values["QWEN_ASR_REALTIME_BASE_URL"] ?? config.qwenAsrRealtimeBaseUrl
+        config.qwenMlxPython = values["QWEN_MLX_PYTHON"] ?? config.qwenMlxPython
+        config.qwenMlxModel = values["QWEN_MLX_MODEL"] ?? config.qwenMlxModel
+        config.qwenMlxLanguage = values["QWEN_MLX_LANGUAGE"] ?? config.qwenMlxLanguage
+        config.qwenMlxCacheDirectory = values["QWEN_MLX_CACHE_DIRECTORY"] ?? config.qwenMlxCacheDirectory
         config.lanSharedSecret = values["LAN_SHARED_SECRET"] ?? ""
         config.deepSeekApiKey = values["DEEPSEEK_API_KEY"] ?? ""
         config.deepSeekModel = values["DEEPSEEK_MODEL"] ?? "deepseek-chat"
@@ -99,6 +103,10 @@ struct SettingsStore {
         values["QWEN_ASR_PROMPT"] = nilIfEmpty(config.qwenAsrPrompt)
         values["QWEN_ASR_SAMPLE_RATE"] = nilIfEmpty(config.qwenAsrSampleRate)
         values["QWEN_ASR_REALTIME_BASE_URL"] = nilIfEmpty(config.qwenAsrRealtimeBaseUrl)
+        values["QWEN_MLX_PYTHON"] = nilIfEmpty(config.qwenMlxPython)
+        values["QWEN_MLX_MODEL"] = nilIfEmpty(config.qwenMlxModel)
+        values["QWEN_MLX_LANGUAGE"] = nilIfEmpty(config.qwenMlxLanguage)
+        values["QWEN_MLX_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenMlxCacheDirectory)
         values["LAN_SHARED_SECRET"] = nilIfEmpty(config.lanSharedSecret)
         values["DEEPSEEK_API_KEY"] = nilIfEmpty(config.deepSeekApiKey)
         values["DEEPSEEK_MODEL"] = config.deepSeekModel != "deepseek-chat" ? config.deepSeekModel : nil

@@ -168,7 +168,7 @@ vibecoding-plus/
 
 ### 配置
 
-原生客户端首次启动会在 `~/Library/Application Support/vibecoding-plus/config.env` 生成配置，也可在客户端「设置」页直接编辑。至少配置一个 STT 密钥：
+原生客户端首次启动会在 `~/Library/Application Support/vibecoding-plus/config.env` 生成配置，也可在客户端「设置」页直接编辑。选择一个语音识别方式并填写对应参数：
 
 ```bash
 # OpenAI Whisper（或任意 OpenAI 兼容第三方接口）
@@ -181,7 +181,16 @@ OPENAI_BASE_URL=https://api.openai.com/v1   # 留空使用官方；可填第三�
 
 # 或 whisper.cpp 本地模型
 # WHISPER_CPP_MODEL_PATH=/path/to/ggml-model.bin
+
+# 或在 macOS 原生客户端中选「Qwen 本地」；它与在线 Qwen3-ASR 独立
+# STT_PROVIDER=qwen_mlx
+# QWEN_MLX_PYTHON=/path/to/venv/bin/python
+# QWEN_MLX_MODEL=Qwen/Qwen3-ASR-0.6B
+# QWEN_MLX_LANGUAGE=Chinese
+# QWEN_MLX_CACHE_DIRECTORY=/path/to/local/model-cache
 ```
+
+「Qwen 本地」需要在所选 Python 环境中安装 `mlx-qwen3-asr`。首次使用时，客户端在后台加载模型；之后的录音复用同一模型进程。模型文件存放在 `QWEN_MLX_CACHE_DIRECTORY`，切换 0.6B / 1.7B 模型后需要在设置页保存并应用。Note 4 固件与 Hermes 接入无需修改。
 
 ### 构建并运行原生客户端
 

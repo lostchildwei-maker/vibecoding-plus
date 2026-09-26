@@ -28,7 +28,7 @@ enum STTError: LocalizedError {
         case .emptyTranscript:
             "STT returned empty transcript"
         case .processFailed(let message):
-            "whisper.cpp failed: \(message)"
+            "本地语音识别失败：\(message)"
         case .timedOut:
             "STT request timed out"
         case .websocketError(let message):
@@ -41,6 +41,7 @@ enum STTError: LocalizedError {
 
 struct STTService {
     let config: ServerConfig
+    private let localQwen = LocalQwenMLXSession()
 
     private static let requestTimeout: TimeInterval = 45
 
@@ -75,6 +76,14 @@ struct STTService {
             return try await transcribeWhisperCpp(wavData)
         case .qwenAsr:
             return try await transcribeQwenAsr(pcm16Data: pcm16Data)
+        case .qwenMlx:
+            return try await localQwen.transcribe(
+                wavData: wavData,
+                python: config.qwenMlxPython,
+                model: config.qwenMlxModel,
+                language: config.qwenMlxLanguage,
+                cacheDirectory: config.qwenMlxCacheDirectory
+            )
         }
     }
 
@@ -331,6 +340,10 @@ struct STTService {
         try await session.start(onPartial: { _ in })
         session.append(pcm16: pcm16Data)
         return try await session.finish()
+    }
+
+    func stop() async {
+        await localQwen.stop()
     }
 
     /// Extract transcript text from a Qwen ASR realtime event.

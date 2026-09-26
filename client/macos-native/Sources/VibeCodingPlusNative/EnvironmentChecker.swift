@@ -30,6 +30,9 @@ struct EnvironmentChecker {
             "codex": codexVersion,
             "whisper_cpp": whisperVersion
         ]
+        let mlxPythonVersion = provider == .qwenMlx
+            ? await version(command: config.qwenMlxPython, args: ["--version"])
+            : ""
 
         let checks = [
             tool(
@@ -81,6 +84,17 @@ struct EnvironmentChecker {
                 purpose: "本地语音识别",
                 note: provider == .whisperCpp ? "当前 STT provider 需要 whisper-cli 和模型文件" : "仅选择 whisper.cpp 时需要",
                 version: versions["whisper_cpp"] ?? ""
+            ),
+            tool(
+                id: "qwen_mlx_python",
+                label: "Qwen 本地 Python",
+                command: config.qwenMlxPython,
+                required: provider == .qwenMlx,
+                installLabel: "配置本地 Python",
+                purpose: "在 Mac 上运行 Qwen3-ASR",
+                note: provider == .qwenMlx ? "需要已安装 mlx-qwen3-asr 的 Python 环境" : "仅选择 Qwen 本地时需要",
+                version: mlxPythonVersion,
+                installable: false
             ),
             sttCheck(config: config),
             hermesCheck(config: config),
@@ -255,7 +269,7 @@ struct EnvironmentChecker {
         NSWorkspace.shared.open(scriptURL)
     }
 
-    private func tool(id: String, label: String, command: String, required: Bool, installLabel: String, purpose: String, note: String, version: String) -> EnvironmentCheck {
+    private func tool(id: String, label: String, command: String, required: Bool, installLabel: String, purpose: String, note: String, version: String, installable: Bool? = nil) -> EnvironmentCheck {
         let found = Shell.findExecutable(command)
         let ok = !found.isEmpty
         return EnvironmentCheck(
@@ -264,7 +278,7 @@ struct EnvironmentChecker {
             type: "tool",
             status: ok ? "ok" : required ? "missing" : "optional",
             required: required,
-            installable: !ok,
+            installable: installable ?? !ok,
             installLabel: installLabel,
             command: command,
             path: found,
@@ -285,6 +299,14 @@ struct EnvironmentChecker {
             missing = config.whisperCppModelPath.isEmpty ? "whisper.cpp 模型路径未填写" : ""
         case .qwenAsr:
             missing = config.qwenAsrApiKey.isEmpty ? "Qwen ASR API Key 未填写" : ""
+        case .qwenMlx:
+            if config.qwenMlxModel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                missing = "Qwen 本地模型未填写"
+            } else if config.qwenMlxCacheDirectory.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                missing = "Qwen 本地模型存储目录未填写"
+            } else {
+                missing = ""
+            }
         }
 
         return EnvironmentCheck(

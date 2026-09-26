@@ -212,6 +212,7 @@ actor NativeServer {
         setupHttpHost.stop()
         firmwareOtaHost.stop()
         cancelAllStreamingSttSessions()
+        await sttService.stop()
         clientStates.removeAll()
         orphanMissedPings.removeAll()
         recentHelloNonces.removeAll()

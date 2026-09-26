@@ -41,6 +41,7 @@ enum STTProvider: String, CaseIterable, Identifiable {
     case openai
     case whisperCpp = "whisper_cpp"
     case qwenAsr = "qwen_asr"
+    case qwenMlx = "qwen_mlx"
 
     var id: String { rawValue }
 
@@ -50,6 +51,7 @@ enum STTProvider: String, CaseIterable, Identifiable {
         case .openai: "OpenAI"
         case .whisperCpp: "whisper.cpp"
         case .qwenAsr: "Qwen3-ASR"
+        case .qwenMlx: "Qwen 本地"
         }
     }
 }
@@ -113,6 +115,10 @@ struct AppConfig {
     var qwenAsrPrompt: String = ""
     var qwenAsrSampleRate: String = "16000"
     var qwenAsrRealtimeBaseUrl: String = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime"
+    var qwenMlxPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/.venv/bin/python"
+    var qwenMlxModel: String = "Qwen/Qwen3-ASR-0.6B"
+    var qwenMlxLanguage: String = "Chinese"
+    var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
     var lanSharedSecret: String = ""
     var deepSeekApiKey: String = ""
     var deepSeekModel: String = "deepseek-chat"

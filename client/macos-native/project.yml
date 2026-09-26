@@ -16,6 +16,7 @@ targets:
     sources:
       - path: Sources
       - path: Resources/Assets.xcassets
+      - path: Resources/qwen_mlx_worker.py
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mac20777.vibecodingplus

@@ -65,6 +65,10 @@ final class AppState: ObservableObject {
         sc.qwenAsrSampleRate = Int(config.qwenAsrSampleRate) ?? 16000
         sc.qwenAsrRealtimeBaseUrl = config.qwenAsrRealtimeBaseUrl
         sc.qwenAsrPrompt = config.qwenAsrPrompt
+        sc.qwenMlxPython = config.qwenMlxPython
+        sc.qwenMlxModel = config.qwenMlxModel
+        sc.qwenMlxLanguage = config.qwenMlxLanguage
+        sc.qwenMlxCacheDirectory = config.qwenMlxCacheDirectory
         sc.claudeCommand = config.claudeCommand
         sc.claudeCwd = config.claudeCwd
         sc.claudeMaxTurns = config.claudeMaxTurns

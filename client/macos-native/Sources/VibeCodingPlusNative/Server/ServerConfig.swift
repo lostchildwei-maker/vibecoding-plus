@@ -71,6 +71,13 @@ struct ServerConfig {
     var qwenAsrRealtimeBaseUrl: String = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime"
     var qwenAsrPrompt: String = ""
 
+    // MARK: - Qwen ASR on Mac (MLX)
+
+    var qwenMlxPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/.venv/bin/python"
+    var qwenMlxModel: String = "Qwen/Qwen3-ASR-0.6B"
+    var qwenMlxLanguage: String = "Chinese"
+    var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
+
     // MARK: - Claude Code
 
     var claudeCommand: String = "claude"
@@ -309,6 +316,12 @@ private extension ServerConfig {
         c.qwenAsrSampleRate = positiveInt(v["QWEN_ASR_SAMPLE_RATE"], fallback: c.qwenAsrSampleRate)
         c.qwenAsrRealtimeBaseUrl = v["QWEN_ASR_REALTIME_BASE_URL"] ?? c.qwenAsrRealtimeBaseUrl
         c.qwenAsrPrompt = v["QWEN_ASR_PROMPT"] ?? ""
+
+        // Local Qwen ASR (MLX). Keep separate from the online Qwen settings.
+        c.qwenMlxPython = v["QWEN_MLX_PYTHON"] ?? c.qwenMlxPython
+        c.qwenMlxModel = v["QWEN_MLX_MODEL"] ?? c.qwenMlxModel
+        c.qwenMlxLanguage = v["QWEN_MLX_LANGUAGE"] ?? c.qwenMlxLanguage
+        c.qwenMlxCacheDirectory = v["QWEN_MLX_CACHE_DIRECTORY"] ?? c.qwenMlxCacheDirectory
 
         // Claude Code
         c.claudeCommand = v["CLAUDE_COMMAND"] ?? c.claudeCommand

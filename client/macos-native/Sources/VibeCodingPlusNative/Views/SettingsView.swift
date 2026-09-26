@@ -230,6 +230,19 @@ struct SettingsView: View {
                     InkFormRow("采样率") { TextField("", text: $state.config.qwenAsrSampleRate).textFieldStyle(.plain) }
                     InkFormRow("Realtime URL") { TextField("", text: $state.config.qwenAsrRealtimeBaseUrl).textFieldStyle(.plain) }
                     InkFormRow("提示词") { TextField("", text: $state.config.qwenAsrPrompt).textFieldStyle(.plain) }
+                case .qwenMlx:
+                    InkFormRow("Python 路径") { TextField("", text: $state.config.qwenMlxPython).textFieldStyle(.plain) }
+                    InkFormRow("模型") {
+                        Picker("模型", selection: $state.config.qwenMlxModel) {
+                            Text("0.6B · 速度优先").tag("Qwen/Qwen3-ASR-0.6B")
+                            Text("1.7B · 准确率优先").tag("Qwen/Qwen3-ASR-1.7B")
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                    }
+                    InkFormRow("语言") { TextField("", text: $state.config.qwenMlxLanguage).textFieldStyle(.plain) }
+                    InkFormRow("模型存储目录") { TextField("", text: $state.config.qwenMlxCacheDirectory).textFieldStyle(.plain) }
+                    sectionHint("在 Mac 上运行；切换模型后保存并应用。首次使用新模型时需要加载或下载。")
                 }
             }
         }
