@@ -95,13 +95,23 @@ for line in sys.stdin:
         audio = np.concatenate(pieces)
         if sample_rate != 16000:
             audio = soxr.resample(audio, sample_rate, 16000)
+        peak = float(np.max(np.abs(audio)))
+        rms = float(np.sqrt(np.mean(audio.astype(np.float64) ** 2)))
+        if not np.isfinite(peak) or not np.isfinite(rms) or peak == 0 or rms == 0:
+            raise ValueError("模型生成了无效或静音音频")
+        # Keep each complete reply near a consistent loudness without clipping.
+        gain = min(10 ** (12 / 20), 10 ** (-18 / 20) / rms, 10 ** (-1 / 20) / peak)
+        audio = audio * gain
         pcm = (np.clip(audio, -1, 1) * 32767).astype("<i2")
         try:
             raw_path.write_bytes(pcm.tobytes())
             command = [
                 imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error",
                 "-y", "-f", "s16le", "-ar", "16000", "-ac", "1",
-                "-i", str(raw_path), "-c:a", "libopus", "-b:a", "32000",
+                "-i", str(raw_path),
+                "-af", "acompressor=threshold=0.5:ratio=2:attack=5:release=60:makeup=1.26,"
+                       "alimiter=limit=0.89:attack=5:release=50:level=false:latency=true",
+                "-c:a", "libopus", "-b:a", "32000",
                 "-application", "voip", "-frame_duration", "20", "-f", "ogg",
                 str(ogg_path),
             ]
