@@ -382,6 +382,7 @@ void LanMicApp::HandleNetEvent(const PendingNetMessage& message) {
             network_state_ = IsWifiConnected() ? NetworkState::Wifi : NetworkState::Offline;
             status_text_ = "服务器错误";
             hint_text_ = "将自动重试";
+            error_text_ = status_text_;
             phase_ = Phase::Error;
             active_page_ = Page::Summary;
             UpdateDisplay();
@@ -412,6 +413,7 @@ void LanMicApp::HandleNetEvent(const PendingNetMessage& message) {
             phase_ = Phase::Error;
             status_text_ = "升级失败";
             hint_text_ = message.data;
+            error_text_ = hint_text_.empty() ? status_text_ : hint_text_;
             UpdateDisplay();
             break;
     }

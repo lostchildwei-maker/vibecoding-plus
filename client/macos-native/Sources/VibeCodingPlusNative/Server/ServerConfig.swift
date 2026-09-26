@@ -104,6 +104,8 @@ struct ServerConfig {
     var hermesApiKey: String = ""
     var hermesSessionId: String = "note4-voice"
     var hermesModel: String = "hermes-agent"
+    var hermesAssistantName: String = "Eira"
+    var userDisplayName: String = "我"
 
     // MARK: - Reminders
 
@@ -138,6 +140,22 @@ struct ServerConfig {
         if !qwenAsrApiKey.isEmpty { return "qwen_asr" }
         if !openaiApiKey.isEmpty { return "openai" }
         return "volcengine"
+    }
+
+    var conversationAssistantName: String {
+        switch sendTarget {
+        case "hermes_agent":
+            let name = hermesAssistantName.trimmingCharacters(in: .whitespacesAndNewlines)
+            return name.isEmpty ? "Hermes" : name
+        case "claude_code": return "Claude"
+        case "codex_exec": return "Codex"
+        default: return "Inject"
+        }
+    }
+
+    var conversationUserName: String {
+        let name = userDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "我" : name
     }
 }
 
@@ -353,6 +371,8 @@ private extension ServerConfig {
         c.hermesApiKey = v["HERMES_API_KEY"] ?? ""
         c.hermesSessionId = v["HERMES_SESSION_ID"] ?? c.hermesSessionId
         c.hermesModel = v["HERMES_MODEL"] ?? c.hermesModel
+        c.hermesAssistantName = v["HERMES_ASSISTANT_NAME"] ?? c.hermesAssistantName
+        c.userDisplayName = v["USER_DISPLAY_NAME"] ?? c.userDisplayName
 
         // Reminders
         c.remindersSyncEnabled = isTruthy(v["REMINDERS_SYNC_ENABLED"])

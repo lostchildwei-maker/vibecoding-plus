@@ -1288,7 +1288,7 @@ static uint32_t utf8_next(const char** pp) {
 // 文本渲染：用 LVGL 字体 API 逐字符写入 1bpp 帧缓冲
 // =======================================================
 void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int start_y,
-                                             const lv_font_t* font, bool white) {
+                                             const lv_font_t* font, bool white, int scale) {
     int cursor_x = start_x;
     int cursor_y = start_y;
     const char* p = text;
@@ -1300,14 +1300,14 @@ void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int 
         // 换行
         if (ch == '\n') {
             cursor_x = start_x;
-            cursor_y += font->line_height;
+            cursor_y += (font->line_height + scale - 1) / scale;
             continue;
         }
 
         // 获取字形描述
         lv_font_glyph_dsc_t g = {};
         if (!lv_font_get_glyph_dsc(font, &g, ch, 0)) {
-            cursor_x += font->line_height / 2;  // 未知字符跳过半宽
+            cursor_x += font->line_height / (2 * scale);  // 未知字符跳过半宽
             continue;
         }
 
@@ -1316,13 +1316,13 @@ void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int 
         const uint8_t* bitmap = (const uint8_t*)font->get_glyph_bitmap(&g, nullptr);
         g.req_raw_bitmap = 0;
         if (!bitmap) {
-            cursor_x += g.adv_w;
+            cursor_x += (g.adv_w + scale - 1) / scale;
             continue;
         }
 
         // 字形在帧缓冲中的位置
-        int gx = cursor_x + g.ofs_x;
-        int gy = cursor_y + font->line_height - font->base_line - g.ofs_y - g.box_h;
+        int gx = cursor_x + g.ofs_x / scale;
+        int gy = cursor_y + (font->line_height - font->base_line - g.ofs_y - g.box_h) / scale;
 
         // 1bpp 字体位图：连续位流 / 或按 stride 对齐
         int row_bits = (g.stride > 0) ? (int)(g.stride * 8) : (int)g.box_w;
@@ -1332,8 +1332,8 @@ void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int 
                 int bit_idx = row * row_bits + col;
                 bool pixel = (bitmap[bit_idx >> 3] >> (7 - (bit_idx & 7))) & 1;
                 if (pixel) {
-                    int px = gx + col;
-                    int py = gy + row;
+                    int px = gx + col / scale;
+                    int py = gy + row / scale;
                     if (px >= 0 && px < Width && py >= 0 && py < Height) {
                         set_pixel_1bpp(buffer, Width, px, py, white);
                     }
@@ -1341,8 +1341,31 @@ void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int 
             }
         }
 
-        cursor_x += g.adv_w;
+        cursor_x += (g.adv_w + scale - 1) / scale;
     }
+}
+
+int CustomLcdDisplay::MeasureTextWidth(const std::string& text, int size) const {
+    const bool compact = size == 12;
+    const lv_font_t* font = (compact || size >= 20)
+        ? &SourceHanSansSC_Medium_slim : &BUILTIN_TEXT_FONT;
+    const int scale = compact ? 2 : 1;
+    int width = 0;
+    int max_width = 0;
+    const char* p = text.c_str();
+    while (*p) {
+        const uint32_t ch = utf8_next(&p);
+        if (ch == '\n') {
+            max_width = std::max(max_width, width);
+            width = 0;
+            continue;
+        }
+        lv_font_glyph_dsc_t glyph = {};
+        width += lv_font_get_glyph_dsc(font, &glyph, ch, 0)
+            ? (glyph.adv_w + scale - 1) / scale
+            : font->line_height / (2 * scale);
+    }
+    return std::max(max_width, width);
 }
 
 void CustomLcdDisplay::DrawTexts(const std::vector<TextItem>& texts, bool clear) {
@@ -1360,11 +1383,12 @@ void CustomLcdDisplay::DrawTexts(const std::vector<TextItem>& texts, bool clear)
     bool has_dirty_text = false;
 
     for (const auto& item : texts) {
-        const lv_font_t* font = (item.size >= 20)
+        const bool compact = item.size == 12;
+        const lv_font_t* font = (compact || item.size >= 20)
             ? &SourceHanSansSC_Medium_slim
             : &BUILTIN_TEXT_FONT;
         render_text_to_buffer(item.content.c_str(), item.x, item.y, font,
-                              item.inverse ? !inverted_ : inverted_);
+                              item.inverse ? !inverted_ : inverted_, compact ? 2 : 1);
 
         const int text_w = static_cast<int>(item.content.size()) * item.size;
         const int text_h = item.size + 6;

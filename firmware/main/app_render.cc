@@ -474,31 +474,15 @@ void LanMicApp::UpdateDisplay() {
         constexpr int kColumnTitleY = 48;
         constexpr int kColumnBottomY = 264;
 
-        const std::string display_name = repo_name_.empty()
+        const std::string display_name = assistant_display_name_.empty()
             ? (send_target_ == "hermes_agent" ? "Hermes" : GetToolLabel())
-            : repo_name_;
-        const auto name_lines = SliceLines(WrapText(display_name, kColumnChars), 0, 2);
-        int left_y = kColumnTitleY;
-        for (const auto& line : name_lines) {
-            texts.push_back({line, kLeftX, left_y, 16});
-            left_y += kLineHeight;
-        }
-
-        std::string reply_status = cli_status_text_.empty()
-            ? display_name + " 空闲" : cli_status_text_;
-        if (phase_ == Phase::Running && !latest_assistant_text_.empty()) {
-            reply_status = "上次回复 · 处理中";
-        }
-        texts.push_back({single_line(reply_status, kColumnChars), kLeftX, left_y, 16});
-        const int reply_y = left_y + kLineHeight;
+            : assistant_display_name_;
+        texts.push_back({single_line(display_name + ":", 14), kLeftX, kColumnTitleY, 12});
+        const int reply_y = kColumnTitleY + 16;
         const int reply_bottom = quota_status_text.empty() ? kColumnBottomY : 244;
         const size_t reply_visible_lines = reply_y + 16 > reply_bottom ? 0
             : static_cast<size_t>((reply_bottom - reply_y - 16) / kLineHeight + 1);
-        std::string reply_body = BuildReplyBody();
-        if (reply_body == cli_status_text_) {
-            reply_body.clear();  // the status is already visible above the reply
-        }
-        const auto reply_lines = WrapText(reply_body, kColumnChars);
+        const auto reply_lines = WrapText(latest_assistant_text_, kColumnChars);
         const int reply_offset = std::clamp(
             summary_scroll_offset_, 0,
             std::max(0, static_cast<int>(reply_lines.size()) - static_cast<int>(reply_visible_lines)));
@@ -511,33 +495,20 @@ void LanMicApp::UpdateDisplay() {
             texts.push_back({single_line(quota_status_text, kColumnChars), kLeftX, 246, 16});
         }
 
-        texts.push_back({"输入", kRightX, kColumnTitleY, 16});
-        int prompt_y = kColumnTitleY + kLineHeight;
-        std::string input_status;
-        if (phase_ == Phase::Recording || phase_ == Phase::Transcribing || phase_ == Phase::Error) {
-            input_status = status_text_;
-        } else if (has_pending_transcript_) {
-            input_status = "待发送";
-        } else if (network_state_ != NetworkState::Server) {
-            input_status = GetNetworkLabel();
-        }
-        if (!input_status.empty()) {
-            texts.push_back({single_line(input_status, kColumnChars), kRightX, prompt_y, 16});
-            prompt_y += kLineHeight;
-        }
-        if (phase_ == Phase::Error && !hint_text_.empty()) {
-            texts.push_back({single_line(hint_text_, kColumnChars), kRightX, prompt_y, 16});
-            prompt_y += kLineHeight;
-        }
+        const std::string user_name = user_display_name_.empty() ? "我" : user_display_name_;
+        texts.push_back({single_line(user_name + ":", 14), kRightX, kColumnTitleY, 12});
+        int prompt_y = kColumnTitleY + 16;
         const size_t prompt_visible_lines = prompt_y + 16 > kColumnBottomY ? 0
             : static_cast<size_t>((kColumnBottomY - prompt_y - 16) / kLineHeight + 1);
-        for (const auto& line : SliceLines(WrapText(BuildPromptBody(), kColumnChars),
+        for (const auto& line : SliceLines(WrapText(transcript_text_, kColumnChars),
                                            0, prompt_visible_lines)) {
             texts.push_back({line, kRightX, prompt_y, 16});
             prompt_y += kLineHeight;
         }
 
-        texts.push_back({GetFooterText(), 10, kFooterTextY, 16});
+        const std::string footer = phase_ == Phase::Error && !error_text_.empty()
+            ? single_line(error_text_, 23) : GetFooterText();
+        texts.push_back({footer, 10, kFooterTextY, 16});
         display_->DrawTexts(texts, true);
 
         // Raw 1bpp black is inverted by the display driver in dark mode, so
@@ -556,7 +527,10 @@ void LanMicApp::UpdateDisplay() {
         header_texts.push_back({std::string(GetNetworkLabel()) + " · " + battery_label,
                                 10, 12, 16, true});
         header_texts.push_back({"编程", 184, 12, 16, true});
-        header_texts.push_back({GetPhaseLabel(), 274, 12, 16, true});
+        const std::string phase_label = GetPhaseLabel();
+        header_texts.push_back({phase_label,
+                                std::max(274, display_->width() - 10 - display_->MeasureTextWidth(phase_label, 16)),
+                                12, 16, true});
         display_->DrawTexts(header_texts, false);
 
         const int divider_height = kColumnBottomY - kTopBarHeight;

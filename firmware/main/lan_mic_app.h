@@ -223,9 +223,12 @@ private:
     std::string status_text_;
     std::string transcript_text_;
     std::string cli_status_text_;
+    std::string error_text_;
     std::string cli_phase_text_;
     std::string latest_assistant_text_;
     std::string repo_name_;
+    std::string assistant_display_name_;
+    std::string user_display_name_ = "我";
     std::string server_uri_;
     std::vector<std::string> cli_log_lines_;
     std::vector<TodoItem> todo_items_;

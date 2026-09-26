@@ -36,6 +36,25 @@ final class STTProviderResolutionTests: XCTestCase {
         XCTAssertEqual(STTService(config: config).resolveProvider(), .qwenAsr)
     }
 
+    func testConversationNamesFollowSendTarget() throws {
+        let configURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("conversation-names-\(UUID().uuidString).env")
+        try "SEND_TARGET=hermes_agent\nHERMES_ASSISTANT_NAME=Eira\nUSER_DISPLAY_NAME=我\n"
+            .write(to: configURL, atomically: true, encoding: .utf8)
+        defer { try? FileManager.default.removeItem(at: configURL) }
+        var config = ServerConfig.load(from: configURL.path)
+        XCTAssertEqual(config.conversationAssistantName, "Eira")
+        XCTAssertEqual(config.conversationUserName, "我")
+
+        config.sendTarget = "codex_exec"
+        XCTAssertEqual(config.conversationAssistantName, "Codex")
+        config.sendTarget = "claude_code"
+        XCTAssertEqual(config.conversationAssistantName, "Claude")
+        config.sendTarget = "hermes_agent"
+        config.hermesAssistantName = " "
+        XCTAssertEqual(config.conversationAssistantName, "Hermes")
+    }
+
     func testLocalQwenWorkerTranscribesRepeatedlyWhenFixtureIsProvided() async throws {
         let environment = ProcessInfo.processInfo.environment
         guard let wavPath = environment["QWEN_MLX_TEST_WAV"],

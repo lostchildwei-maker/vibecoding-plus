@@ -1769,6 +1769,8 @@ actor NativeServer {
             "textInjectionMode": config.textInjectionMode,
             "transcriptDeliveryMode": config.transcriptDeliveryMode,
             "sendTarget": config.sendTarget,
+            "assistantDisplayName": config.conversationAssistantName,
+            "userDisplayName": config.conversationUserName,
             "authRequired": !config.lanSharedSecret.isEmpty,
             "displayTodoRefreshMs": config.displayTodoRefreshMs,
             "displayCodingRefreshMs": config.displayCodingRefreshMs,

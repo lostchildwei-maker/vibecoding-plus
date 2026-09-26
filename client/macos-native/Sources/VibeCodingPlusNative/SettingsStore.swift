@@ -54,6 +54,8 @@ struct SettingsStore {
         config.hermesApiKey = values["HERMES_API_KEY"] ?? ""
         config.hermesSessionId = values["HERMES_SESSION_ID"] ?? config.hermesSessionId
         config.hermesModel = values["HERMES_MODEL"] ?? config.hermesModel
+        config.hermesAssistantName = values["HERMES_ASSISTANT_NAME"] ?? config.hermesAssistantName
+        config.userDisplayName = values["USER_DISPLAY_NAME"] ?? config.userDisplayName
         config.mockTranscript = values["MOCK_TRANSCRIPT"] ?? ""
         config.port = Int(values["LAN_VOICE_PORT"] ?? values["PORT"] ?? "") ?? 8765
         config.discoveryHostId = values["LAN_DISCOVERY_HOST_ID"] ?? "VibeServer"
@@ -135,6 +137,8 @@ struct SettingsStore {
         values["HERMES_API_KEY"] = nilIfEmpty(config.hermesApiKey)
         values["HERMES_SESSION_ID"] = nilIfEmpty(config.hermesSessionId)
         values["HERMES_MODEL"] = nilIfEmpty(config.hermesModel)
+        values["HERMES_ASSISTANT_NAME"] = nilIfEmpty(config.hermesAssistantName)
+        values["USER_DISPLAY_NAME"] = nilIfEmpty(config.userDisplayName)
         values["MOCK_TRANSCRIPT"] = nilIfEmpty(config.mockTranscript)
         values["CODEX_SKIP_GIT_REPO_CHECK"] = config.codexSkipGitRepoCheck ? "1" : nil
         values["CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS"] = config.claudeDangerouslySkipPermissions ? "1" : nil

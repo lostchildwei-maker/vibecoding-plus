@@ -940,6 +940,7 @@ void LanMicApp::Run() {
             } else {
                 status_text_ = "回车失败";
                 hint_text_ = "检查连接";
+                error_text_ = status_text_;
                 phase_ = Phase::Error;
             }
             UpdateDisplay();
@@ -992,6 +993,7 @@ void LanMicApp::Run() {
                 reconnect_prompt_started_ms = now_ms;
                 status_text_ = "重连卡住";
                 hint_text_ = "请选择操作";
+                error_text_ = status_text_;
                 phase_ = Phase::Error;
                 active_page_ = Page::Todo;
                 UpdateDisplay();
@@ -1468,6 +1470,7 @@ void LanMicApp::Run() {
                     } else {
                         status_text_ = "清空失败";
                         hint_text_ = "检查连接";
+                        error_text_ = status_text_;
                         phase_ = Phase::Error;
                     }
                 } else {
@@ -1504,6 +1507,7 @@ void LanMicApp::Run() {
                     phase_ = Phase::Error;
                     status_text_ = "录音中断";
                     hint_text_ = "连接已断开，松开 BOOT";
+                    error_text_ = hint_text_;
                     preroll_frames_.clear();
                     // Neutralise the in-flight BOOT gesture so the release below
                     // is not mistaken for a short tap / todo toggle.

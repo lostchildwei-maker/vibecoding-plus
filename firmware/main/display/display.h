@@ -52,12 +52,15 @@ public:
         std::string content;
         int x = 0;
         int y = 0;
-        int size = 24;  // 16 or 24
+        int size = 24;  // 12 (compact bold), 16, or 24
         bool inverse = false;  // draw in the opposite color of normal text
     };
 
     // 直接在设备端渲染文本到帧缓冲区（由子类实现）
     virtual void DrawTexts(const std::vector<TextItem>& texts, bool clear) { (void)texts; (void)clear; }
+    virtual int MeasureTextWidth(const std::string& text, int size) const {
+        return static_cast<int>(text.size()) * size / 2;
+    }
 
     // 更新图片页缓存（默认无实现）
     virtual void UpdatePicRegion(int x, int y, int w, int h, const uint8_t* data, size_t len) {

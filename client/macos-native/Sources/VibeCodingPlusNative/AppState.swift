@@ -87,6 +87,8 @@ final class AppState: ObservableObject {
         sc.hermesApiKey = config.hermesApiKey
         sc.hermesSessionId = config.hermesSessionId
         sc.hermesModel = config.hermesModel
+        sc.hermesAssistantName = config.hermesAssistantName
+        sc.userDisplayName = config.userDisplayName
         sc.mockTranscript = config.mockTranscript
         sc.remindersSyncEnabled = config.remindersSyncEnabled
         sc.remindersListName = config.remindersListName

@@ -50,6 +50,7 @@ public:
 
     void WriteRaw1bpp(int x, int y, int w, int h, const uint8_t* data, size_t len) override;
     void DrawTexts(const std::vector<TextItem>& texts, bool clear) override;
+    int MeasureTextWidth(const std::string& text, int size) const override;
 
     void EPD_Init();
     void EPD_Clear();
@@ -156,7 +157,8 @@ private:
     bool CheckRefreshIdleLocked();
 
     // 文本渲染辅助
-    void render_text_to_buffer(const char* text, int x, int y, const lv_font_t* font, bool white);
+    void render_text_to_buffer(const char* text, int x, int y, const lv_font_t* font,
+                               bool white, int scale = 1);
 };
 
 #endif // __CUSTOM_LCD_DISPLAY_H__

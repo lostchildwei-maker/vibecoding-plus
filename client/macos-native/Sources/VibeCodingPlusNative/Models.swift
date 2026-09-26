@@ -151,6 +151,8 @@ struct AppConfig {
     var hermesApiKey: String = ""
     var hermesSessionId: String = "note4-voice"
     var hermesModel: String = "hermes-agent"
+    var hermesAssistantName: String = "Eira"
+    var userDisplayName: String = "我"
     var claudeMaxTurns: Int = 10
     var mockTranscript: String = ""
     var codexCwd: String = ""

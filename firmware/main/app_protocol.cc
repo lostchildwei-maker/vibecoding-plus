@@ -421,6 +421,14 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
                 repo_name_ = GetToolLabel();
             }
         }
+        const char* assistant_name = GetJsonString(root, "assistantDisplayName");
+        if (assistant_name != nullptr) {
+            assistant_display_name_ = assistant_name;
+        }
+        const char* user_name = GetJsonString(root, "userDisplayName");
+        if (user_name != nullptr) {
+            user_display_name_ = user_name;
+        }
         const char* mode = GetJsonString(root, "mode");
         if (mode != nullptr) {
             voice_mode_ = strcmp(mode, "todo") == 0 ? VoiceMode::Todo : VoiceMode::Normal;
@@ -573,6 +581,9 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
                 summary_scroll_offset_ = 0;
             } else if (strcmp(status, "typed") == 0) {
                 const bool text_injector = send_target_ == "text_injector";
+                if (!text_injector) {
+                    latest_assistant_text_.clear();
+                }
                 phase_ = text_injector ? Phase::Idle : Phase::Running;
                 status_text_ = text_injector ? "已注入" : "已发送";
                 has_pending_transcript_ = false;
@@ -610,6 +621,7 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
                 phase_ = Phase::Error;
                 status_text_ = "输入失败";
                 hint_text_ = message != nullptr ? message : "检查辅助功能权限";
+                error_text_ = hint_text_;
                 active_page_ = Page::Summary;
             } else {
                 status_text_ = status;
@@ -659,12 +671,16 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
             cli_phase_text_ = phase;
             if (strcmp(phase, "running") == 0) {
                 if (!recording_or_transcribing) {
+                    if (!was_running) {
+                        latest_assistant_text_.clear();
+                    }
                     phase_ = Phase::Running;
                     active_page_ = PageForCurrentVoiceMode();
                 }
             } else if (strcmp(phase, "error") == 0) {
                 if (!recording_or_transcribing) {
                     phase_ = Phase::Error;
+                    error_text_ = status_line != nullptr ? status_line : "处理失败";
                     active_page_ = PageForCurrentVoiceMode();
                     PlayBeep(300, 300);  // 出错：低沉长音
                 }
@@ -731,6 +747,7 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
         phase_ = Phase::Error;
         status_text_ = "错误";
         hint_text_ = (error != nullptr) ? error : "未知错误";
+        error_text_ = hint_text_;
     } else if (strcmp(type, LAN_MSG_SERVER_WARNING) == 0) {
         const char* warning = GetJsonString(root, "warning");
         status_text_ = "警告";
@@ -760,4 +777,3 @@ void LanMicApp::HandleServerMessage(const char* data, size_t len) {
     cJSON_Delete(root);
     UpdateDisplay();
 }
-

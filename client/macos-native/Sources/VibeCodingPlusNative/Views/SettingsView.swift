@@ -5,6 +5,11 @@ import EventKit
 struct SettingsView: View {
     @EnvironmentObject private var state: AppState
 
+    private var hermesName: String {
+        let name = state.config.hermesAssistantName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "Hermes" : name
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             PageHeader(eyebrow: "CONFIG", title: "设置", subtitle: state.inlineStatus)
@@ -73,7 +78,7 @@ struct SettingsView: View {
 
                     PickerRow(label: state.config.sendTarget == .hermesAgent ? "发送时机" : "输入时机",
                               hint: state.config.sendTarget == .hermesAgent
-                                ? "设备确认=核对转写后发送给 Eira；立即发送=说完后直接发送"
+                                ? "设备确认=核对转写后发送给 \(hermesName)；立即发送=说完后直接发送"
                                 : "设备确认=在墨水屏上点确认才输入；立即输入=说完立刻注入") {
                         InkSegmentedPicker(
                             selection: Binding(
@@ -112,8 +117,13 @@ struct SettingsView: View {
                         )
                     }
 
+                    InkFormRow("我的显示名") {
+                        TextField("我", text: $state.config.userDisplayName)
+                            .textFieldStyle(.plain)
+                    }
+
                     if state.config.sendTarget == .hermesAgent {
-                        PickerRow(label: "语音回复", hint: "Eira 的文字回复照常显示；开启后也会在 Note 4 播放") {
+                        PickerRow(label: "语音回复", hint: "\(hermesName) 的文字回复照常显示；开启后也会在 Note 4 播放") {
                             InkSegmentedPicker(
                                 selection: $state.config.ttsProvider,
                                 options: TTSProvider.allCases,
@@ -147,6 +157,10 @@ struct SettingsView: View {
                         }
                         InkFormRow("Hermes 模型名") {
                             TextField("hermes-agent", text: $state.config.hermesModel)
+                                .textFieldStyle(.plain)
+                        }
+                        InkFormRow("助手显示名") {
+                            TextField("Eira", text: $state.config.hermesAssistantName)
                                 .textFieldStyle(.plain)
                         }
                     }
@@ -293,15 +307,15 @@ struct SettingsView: View {
                                 detail: "录音；松开后在 Mac 上识别，并在设备上显示文字")
                     if state.config.transcriptDeliveryMode == "confirm_on_device" {
                         UsageKeyRow(symbol: "arrow.up", action: "上键",
-                                    detail: "确认并发送识别文字给 Eira")
+                                    detail: "确认并发送识别文字给 \(hermesName)")
                         UsageKeyRow(symbol: "arrow.down", action: "下键",
                                     detail: "撤销待发送的文字")
                     } else {
                         UsageKeyRow(symbol: "paperplane", action: "松开 BOOT 后",
-                                    detail: "识别文字自动发送给 Eira")
+                                    detail: "识别文字自动发送给 \(hermesName)")
                     }
                     UsageKeyRow(symbol: "text.bubble", action: "等待回复",
-                                detail: "Eira 的文字回答会显示在设备上")
+                                detail: "\(hermesName) 的文字回答会显示在设备上")
                 } else {
                     UsageKeyRow(symbol: "rectangle.roundedtop.fill", action: "长按 BOOT",
                                 detail: "开始录音，松开后自动识别并输入到光标处")
