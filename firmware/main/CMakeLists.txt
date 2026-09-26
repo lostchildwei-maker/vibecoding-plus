@@ -6,6 +6,7 @@ set(SOURCES
     "app_protocol.cc"
     "app_input.cc"
     "app_render.cc"
+    "app_audio_downlink.cc"
     "app_ota.cc"
     "input/gpio_input_driver.cc"
     "main.cc"

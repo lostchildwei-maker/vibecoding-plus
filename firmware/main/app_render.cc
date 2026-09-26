@@ -255,7 +255,8 @@ void LanMicApp::UpdateLed() {
 }
 
 void LanMicApp::PlayBeep(int freq_hz, int duration_ms) {
-    if (codec_ == nullptr || freq_hz <= 0 || duration_ms <= 0) {
+    if (codec_ == nullptr || freq_hz <= 0 || duration_ms <= 0 ||
+        speaker_output_owned_.load(std::memory_order_acquire)) {
         return;
     }
     const int sample_rate = codec_->output_sample_rate() > 0 ? codec_->output_sample_rate() : 16000;
@@ -294,6 +295,10 @@ void LanMicApp::PlayBeep(int freq_hz, int duration_ms) {
 }
 
 void LanMicApp::ServiceAudioOutput(int64_t now_ms) {
+    if (speaker_output_owned_.load(std::memory_order_acquire)) {
+        audio_output_off_at_ms_ = 0;
+        return;
+    }
     if (audio_output_off_at_ms_ == 0 || codec_ == nullptr) {
         return;
     }
@@ -673,4 +678,3 @@ void LanMicApp::UpdateDisplay() {
     DrawBatteryIcon(382, 12, battery_known_ ? battery_level_ : 0, battery_charging_);
     display_->RequestUrgentRefresh();
 }
-

@@ -29,6 +29,7 @@ struct ServerConfig {
 
     var sendTarget: String = "text_injector"
     var sttProvider: String = ""
+    var ttsProvider: String = "off"
     var transcriptDeliveryMode: String = "confirm_on_device"
     var textInjectionMode: String = "type_and_enter"
     var port: Int = 8765
@@ -78,6 +79,10 @@ struct ServerConfig {
     var qwenMlxLanguage: String = "Chinese"
     var qwenMlxContext: String = "Eira Hermes Note 4"
     var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
+    var qwenTTSPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/.venv/bin/python"
+    var qwenTTSModel: String = "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16"
+    var qwenTTSVoice: String = "Serena"
+    var qwenTTSCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/models"
 
     // MARK: - Claude Code
 
@@ -280,6 +285,7 @@ private extension ServerConfig {
         // Core
         c.sendTarget = v["SEND_TARGET"] ?? c.sendTarget
         c.sttProvider = v["STT_PROVIDER"] ?? ""
+        c.ttsProvider = v["TTS_PROVIDER"] ?? "off"
         c.transcriptDeliveryMode = normalizeDeliveryMode(v["TRANSCRIPT_DELIVERY_MODE"])
         c.textInjectionMode = normalizeInjectionMode(v["TEXT_INJECTION_MODE"])
         c.port = positiveInt(v["LAN_VOICE_PORT"], fallback: c.port)
@@ -324,6 +330,10 @@ private extension ServerConfig {
         c.qwenMlxLanguage = v["QWEN_MLX_LANGUAGE"] ?? c.qwenMlxLanguage
         c.qwenMlxContext = v["QWEN_MLX_CONTEXT"] ?? c.qwenMlxContext
         c.qwenMlxCacheDirectory = v["QWEN_MLX_CACHE_DIRECTORY"] ?? c.qwenMlxCacheDirectory
+        c.qwenTTSPython = v["QWEN_TTS_PYTHON"] ?? c.qwenTTSPython
+        c.qwenTTSModel = v["QWEN_TTS_MODEL"] ?? c.qwenTTSModel
+        c.qwenTTSVoice = v["QWEN_TTS_VOICE"] ?? c.qwenTTSVoice
+        c.qwenTTSCacheDirectory = v["QWEN_TTS_CACHE_DIRECTORY"] ?? c.qwenTTSCacheDirectory
 
         // Claude Code
         c.claudeCommand = v["CLAUDE_COMMAND"] ?? c.claudeCommand

@@ -22,6 +22,7 @@
 #define LAN_MSG_DEVICE_FIRMWARE_RESULT "firmware_result"
 #define LAN_MSG_DEVICE_FIRMWARE_CHECK_RESULT "firmware_check_result"
 #define LAN_MSG_DEVICE_DISCOVER_HOST "discover_host"
+#define LAN_MSG_DEVICE_TTS_STATE "tts_state"
 
 #define LAN_MSG_SERVER_AUTH_CHALLENGE "auth_challenge"
 #define LAN_MSG_SERVER_HELLO_ACK "hello_ack"

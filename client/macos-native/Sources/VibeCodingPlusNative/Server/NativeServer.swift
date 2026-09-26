@@ -73,6 +73,11 @@ private enum HermesBridgeError: LocalizedError {
     }
 }
 
+private enum SpeechAudio {
+    case pcm(Data)
+    case opus(LocalQwenAudio)
+}
+
 // MARK: - NativeServer
 
 /// Main orchestrator that replaces the 2 462-line Node.js `server.mjs`.
@@ -87,6 +92,7 @@ actor NativeServer {
     private let wsServer = WebSocketServer()
     private let discoveryServer = DiscoveryServer()
     private let sttService: STTService
+    private let localTTS = LocalQwenTTSSession()
     private let remindersSync = RemindersSync()
     private let todoAssistant: TodoAssistant
     private var todoService: TodoService!
@@ -121,6 +127,10 @@ actor NativeServer {
     private var cliPromptQueue: [(text: String, connId: UUID, injectionMode: String?)] = []
     private var hermesBusy = false
     private var hermesSessionId: String
+    private var speechTasks: [UUID: Task<Void, Never>] = [:]
+    private var speechPlaybackIds: [UUID: UUID] = [:]
+    private var pendingSpeechText: [UUID: String] = [:]
+    private var pendingSpeechStartedAt: [UUID: Date] = [:]
     private var firmwareCheckContinuations: [String: (token: UUID, continuation: CheckedContinuation<Bool, Never>)] = [:]
 
     // MARK: Callbacks to UI layer (nonisolated for external wiring)
@@ -204,6 +214,12 @@ actor NativeServer {
     private func teardownServices() async {
         isRunning = false
 
+        for task in speechTasks.values { task.cancel() }
+        speechTasks.removeAll()
+        speechPlaybackIds.removeAll()
+        pendingSpeechText.removeAll()
+        pendingSpeechStartedAt.removeAll()
+
         stopKeepalive()
         stopExternalCliWatcher()
         await discoveryServer.stop()
@@ -213,6 +229,7 @@ actor NativeServer {
         firmwareOtaHost.stop()
         cancelAllStreamingSttSessions()
         await sttService.stop()
+        await localTTS.stop()
         clientStates.removeAll()
         orphanMissedPings.removeAll()
         recentHelloNonces.removeAll()
@@ -624,6 +641,14 @@ actor NativeServer {
                 pending.continuation.resume(returning: needUpgrade)
             }
 
+        case LANDeviceMessage.tts_state:
+            guard ensureAuthenticated(connId, conn: conn) else { return }
+            let state = (message["state"] as? String) ?? "unknown"
+            appendServiceLog("设备语音播放: \(state)")
+            if state == "playing" || state == "done" || state == "error" {
+                publishSpeechText(for: connId)
+            }
+
         default:
             sendJson(to: conn, ["type": LANServerMessage.warning, "warning": "unknown_message_type:\(type)"])
         }
@@ -707,6 +732,7 @@ actor NativeServer {
     // MARK: - PTT Audio Pipeline
 
     private func handlePttStart(_ message: [String: Any], connId: UUID) async {
+        await cancelSpeechReply(for: connId)
         var state = clientStates[connId] ?? ClientState()
 
         // 设备连发两次 ptt_start（中间没有 ptt_stop）时，上一段的流式会话必须先
@@ -1441,10 +1467,14 @@ actor NativeServer {
 
         do {
             let answer = try await requestHermesCompletion(text)
-            cliView.latestAssistantText = answer
-            appendCliLog("assistant: \(answer.prefix(80))")
             setCliState(phase: "idle", statusLine: "Hermes 已回复", threadId: hermesSessionId)
-            broadcastCliSummary()
+            if config.ttsProvider == "system" || config.ttsProvider == "qwen_mlx" {
+                await startSpeechReply(answer, connId: connId)
+            } else {
+                appendCliLog("assistant: \(answer.prefix(80))")
+                cliView.latestAssistantText = answer
+                broadcastCliSummary()
+            }
         } catch {
             appendCliLog("Hermes error: \(error.localizedDescription)")
             setCliState(phase: "error", statusLine: error.localizedDescription)
@@ -1452,6 +1482,114 @@ actor NativeServer {
 
         hermesBusy = false
         await drainPromptQueue()
+    }
+
+    private func startSpeechReply(_ answer: String, connId: UUID) async {
+        await cancelSpeechReply(for: connId)
+        guard clientStates[connId]?.authenticated == true else { return }
+        let playbackId = UUID()
+        speechPlaybackIds[connId] = playbackId
+        pendingSpeechText[connId] = answer
+        pendingSpeechStartedAt[connId] = Date()
+        let ttsProvider = config.ttsProvider
+        let ttsPython = config.qwenTTSPython
+        let ttsModel = config.qwenTTSModel
+        let ttsVoice = config.qwenTTSVoice
+        let ttsCacheDirectory = config.qwenTTSCacheDirectory
+        speechTasks[connId] = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let audio: SpeechAudio
+                if ttsProvider == "qwen_mlx" {
+                    audio = .opus(try await self.localTTS.synthesize(
+                        answer, python: ttsPython, model: ttsModel,
+                        speaker: ttsVoice, cacheDirectory: ttsCacheDirectory
+                    ))
+                } else {
+                    audio = .pcm(try await SystemTTSService.synthesize(answer))
+                }
+                try Task.checkCancellation()
+                await self.sendSpeechAudio(audio, connId: connId, playbackId: playbackId)
+            } catch is CancellationError {
+                // A fresh recording or a disconnected device superseded this reply.
+            } catch {
+                await self.appendServiceLog("Mac 语音合成失败: \(error.localizedDescription)")
+                await self.publishSpeechText(for: connId)
+            }
+            await self.finishSpeechReply(connId: connId, playbackId: playbackId)
+        }
+    }
+
+    private func sendSpeechAudio(_ audio: SpeechAudio, connId: UUID, playbackId: UUID) async {
+        guard speechPlaybackIds[connId] == playbackId,
+              let conn = await wsServer.connection(id: connId) else { return }
+        var start: Data
+        var frame: Data
+        switch audio {
+        case .pcm(let pcm):
+            guard !pcm.isEmpty, pcm.count <= 1_536 * 1_024 else {
+                appendServiceLog("Mac 语音过长，已保留文字回复，跳过设备播放")
+                publishSpeechText(for: connId)
+                return
+            }
+            appendServiceLog("Mac 语音已合成: \(String(format: "%.1f", Double(pcm.count) / 32_000)) 秒，PCM \(pcm.count) 字节")
+            start = Data("TTS1S".utf8)
+            var byteCount = UInt32(pcm.count).littleEndian
+            withUnsafeBytes(of: &byteCount) { start.append(contentsOf: $0) }
+            frame = Data(capacity: 5 + pcm.count)
+            frame.append(contentsOf: "TTS1F".utf8)
+            frame.append(pcm)
+        case .opus(let encoded):
+            guard !encoded.packets.isEmpty, encoded.packets.count <= 1_536 * 1_024,
+                  encoded.pcmSamples <= 786_432,
+                  encoded.preSkipSamples <= Int(UInt16.max) else {
+                appendServiceLog("Mac 压缩语音过长，已保留文字回复，跳过设备播放")
+                publishSpeechText(for: connId)
+                return
+            }
+            appendServiceLog("Mac 语音已合成: \(String(format: "%.1f", Double(encoded.pcmSamples) / 16_000)) 秒，Opus \(encoded.packets.count) 字节")
+            start = Data("TTS2S".utf8)
+            var sampleCount = UInt32(encoded.pcmSamples).littleEndian
+            var packetBytes = UInt32(encoded.packets.count).littleEndian
+            var preSkip = UInt16(encoded.preSkipSamples).littleEndian
+            withUnsafeBytes(of: &sampleCount) { start.append(contentsOf: $0) }
+            withUnsafeBytes(of: &packetBytes) { start.append(contentsOf: $0) }
+            withUnsafeBytes(of: &preSkip) { start.append(contentsOf: $0) }
+            frame = Data(capacity: 5 + encoded.packets.count)
+            frame.append(contentsOf: "TTS2F".utf8)
+            frame.append(encoded.packets)
+        }
+        conn.send(binary: start)
+        // Give Note 4 time to disable Wi-Fi power saving before the complete
+        // audio message starts arriving. Playback begins only after that
+        // message has been fully received and stored on the device.
+        try? await Task.sleep(for: .milliseconds(250))
+        guard speechPlaybackIds[connId] == playbackId, !Task.isCancelled else { return }
+        conn.send(binary: frame)
+    }
+
+    private func cancelSpeechReply(for connId: UUID) async {
+        speechPlaybackIds.removeValue(forKey: connId)
+        pendingSpeechText.removeValue(forKey: connId)
+        pendingSpeechStartedAt.removeValue(forKey: connId)
+        speechTasks.removeValue(forKey: connId)?.cancel()
+        if let conn = await wsServer.connection(id: connId) {
+            conn.send(binary: Data("TTS1C".utf8))
+        }
+    }
+
+    private func finishSpeechReply(connId: UUID, playbackId: UUID) {
+        guard speechPlaybackIds[connId] == playbackId else { return }
+        speechTasks.removeValue(forKey: connId)
+        speechPlaybackIds.removeValue(forKey: connId)
+    }
+
+    private func publishSpeechText(for connId: UUID) {
+        guard let answer = pendingSpeechText.removeValue(forKey: connId) else { return }
+        pendingSpeechStartedAt.removeValue(forKey: connId)
+        appendCliLog("assistant: \(answer.prefix(80))")
+        cliView.latestAssistantText = answer
+        broadcastCliSummary()
     }
 
     private func requestHermesCompletion(_ text: String) async throws -> String {
@@ -1856,6 +1994,21 @@ actor NativeServer {
     private func runKeepalive() async {
         var toRemove: [UUID] = []
         for (connId, conn) in await wsServer.allConnections().map({ ($0.id, $0) }) {
+            // A large audio WebSocket frame can take longer than a ping window
+            // to drain. The device cannot parse the following ping until the
+            // frame is complete, so TCP send progress is the liveness signal.
+            if let startedAt = pendingSpeechStartedAt[connId] {
+                if Date().timeIntervalSince(startedAt) < 180 {
+                    if var state = clientStates[connId] {
+                        state.missedPings = 0
+                        clientStates[connId] = state
+                    }
+                    continue
+                }
+                appendServiceLog("语音传输超时，改为保留文字回复")
+                publishSpeechText(for: connId)
+                await cancelSpeechReply(for: connId)
+            }
             // clientStates 里已经没有的连接（例如认证失败后被移除、但仍挂在
             // wsServer 上）必须单独计数，否则每轮都从 0 重新算，永远不会超时。
             let missed = (clientStates[connId]?.missedPings ?? orphanMissedPings[connId] ?? 0) + 1
@@ -1917,6 +2070,11 @@ actor NativeServer {
 
     // Called externally by the WebSocket layer when a connection drops
     func handleDisconnect(_ connId: UUID) {
+        speechPlaybackIds.removeValue(forKey: connId)
+        speechTasks.removeValue(forKey: connId)?.cancel()
+        // If audio delivery fails, keep the text for the next connection's
+        // initial snapshot rather than losing both forms of the reply.
+        publishSpeechText(for: connId)
         let state = clientStates.removeValue(forKey: connId)
         orphanMissedPings.removeValue(forKey: connId)
         if let session = streamingSttSessions.removeValue(forKey: connId) {

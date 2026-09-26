@@ -38,6 +38,10 @@ struct SettingsStore {
         config.qwenMlxLanguage = values["QWEN_MLX_LANGUAGE"] ?? config.qwenMlxLanguage
         config.qwenMlxContext = values["QWEN_MLX_CONTEXT"] ?? config.qwenMlxContext
         config.qwenMlxCacheDirectory = values["QWEN_MLX_CACHE_DIRECTORY"] ?? config.qwenMlxCacheDirectory
+        config.qwenTTSPython = values["QWEN_TTS_PYTHON"] ?? config.qwenTTSPython
+        config.qwenTTSModel = values["QWEN_TTS_MODEL"] ?? config.qwenTTSModel
+        config.qwenTTSVoice = values["QWEN_TTS_VOICE"] ?? config.qwenTTSVoice
+        config.qwenTTSCacheDirectory = values["QWEN_TTS_CACHE_DIRECTORY"] ?? config.qwenTTSCacheDirectory
         config.lanSharedSecret = values["LAN_SHARED_SECRET"] ?? ""
         config.deepSeekApiKey = values["DEEPSEEK_API_KEY"] ?? ""
         config.deepSeekModel = values["DEEPSEEK_MODEL"] ?? "deepseek-chat"
@@ -71,6 +75,7 @@ struct SettingsStore {
 
         // Auto-detect STT provider
         config.sttProvider = STTProvider(rawValue: values["STT_PROVIDER"] ?? "") ?? inferredProvider(values)
+        config.ttsProvider = TTSProvider(rawValue: values["TTS_PROVIDER"] ?? "") ?? .off
 
         // Auto-detect send target (prefer claude > codex > text_injector)
         if let explicit = values["SEND_TARGET"], !explicit.isEmpty {
@@ -86,6 +91,7 @@ struct SettingsStore {
         var values = readEnv()
         values["SEND_TARGET"] = config.sendTarget.rawValue
         values["STT_PROVIDER"] = config.sttProvider.rawValue
+        values["TTS_PROVIDER"] = config.ttsProvider.rawValue
         values["TRANSCRIPT_DELIVERY_MODE"] = config.transcriptDeliveryMode
         values["TEXT_INJECTION_MODE"] = config.textInjectionMode
         values["OPENAI_API_KEY"] = nilIfEmpty(config.openaiApiKey)
@@ -109,6 +115,10 @@ struct SettingsStore {
         values["QWEN_MLX_LANGUAGE"] = nilIfEmpty(config.qwenMlxLanguage)
         values["QWEN_MLX_CONTEXT"] = nilIfEmpty(config.qwenMlxContext)
         values["QWEN_MLX_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenMlxCacheDirectory)
+        values["QWEN_TTS_PYTHON"] = nilIfEmpty(config.qwenTTSPython)
+        values["QWEN_TTS_MODEL"] = nilIfEmpty(config.qwenTTSModel)
+        values["QWEN_TTS_VOICE"] = nilIfEmpty(config.qwenTTSVoice)
+        values["QWEN_TTS_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenTTSCacheDirectory)
         values["LAN_SHARED_SECRET"] = nilIfEmpty(config.lanSharedSecret)
         values["DEEPSEEK_API_KEY"] = nilIfEmpty(config.deepSeekApiKey)
         values["DEEPSEEK_MODEL"] = config.deepSeekModel != "deepseek-chat" ? config.deepSeekModel : nil

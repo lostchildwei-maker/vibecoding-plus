@@ -557,7 +557,9 @@ bool LanMicApp::EnsureWebSocketConnected() {
         ws_error_pending_.store(true, std::memory_order_release);
     });
     ws->OnData([this](const char* data, size_t len, bool binary) {
-        if (!binary && data != nullptr && len > 0) {
+        if (binary && data != nullptr && len > 0) {
+            EnqueueSpeakerFrame(data, len);
+        } else if (!binary && data != nullptr && len > 0) {
             EnqueueServerMessage(data, len);
         }
     });
@@ -905,6 +907,7 @@ void LanMicApp::EnterWifiSetupMode() {
 }
 
 void LanMicApp::DisconnectWebSocket() {
+    CancelSpeakerPlayback();
     if (connect_attempt_running_.load(std::memory_order_acquire) && !IsServerConnected()) {
         connect_cancel_requested_.store(true, std::memory_order_release);
     } else {

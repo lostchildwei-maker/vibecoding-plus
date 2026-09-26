@@ -112,6 +112,16 @@ struct SettingsView: View {
                         )
                     }
 
+                    if state.config.sendTarget == .hermesAgent {
+                        PickerRow(label: "语音回复", hint: "Eira 的文字回复照常显示；开启后也会在 Note 4 播放") {
+                            InkSegmentedPicker(
+                                selection: $state.config.ttsProvider,
+                                options: TTSProvider.allCases,
+                                label: { $0.label }
+                            )
+                        }
+                    }
+
                     InkFormRow("LAN Secret") {
                         SecureField("留空=不鉴权", text: $state.config.lanSharedSecret)
                             .textFieldStyle(.plain)
@@ -146,6 +156,33 @@ struct SettingsView: View {
             usageGuidePanel
 
             providerSettings
+
+            if state.config.sendTarget == .hermesAgent && state.config.ttsProvider == .qwenMlx {
+                InkPanel(title: "Qwen 本地语音参数", symbol: "waveform") {
+                    VStack(spacing: 12) {
+                        InkFormRow("Python 路径") {
+                            TextField("", text: $state.config.qwenTTSPython).textFieldStyle(.plain)
+                        }
+                        InkFormRow("模型") {
+                            TextField("", text: $state.config.qwenTTSModel).textFieldStyle(.plain)
+                        }
+                        InkFormRow("声线") {
+                            Picker("声线", selection: $state.config.qwenTTSVoice) {
+                                Text("Serena · 温柔女声").tag("Serena")
+                                Text("Vivian · 明亮女声").tag("Vivian")
+                                Text("Uncle Fu · 低沉男声").tag("Uncle_Fu")
+                                Text("Dylan · 北京男声").tag("Dylan")
+                                Text("Eric · 成都男声").tag("Eric")
+                            }
+                            .labelsHidden()
+                        }
+                        InkFormRow("模型存储目录") {
+                            TextField("", text: $state.config.qwenTTSCacheDirectory).textFieldStyle(.plain)
+                        }
+                        sectionHint("模型在 Mac 上运行。文字照常显示；完整语音合成后发送给 Note 4 播放。")
+                    }
+                }
+            }
 
             InkPanel(title: "应用行为", symbol: "gearshape") {
                 VStack(alignment: .leading, spacing: 12) {

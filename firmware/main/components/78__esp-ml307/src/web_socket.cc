@@ -347,7 +347,14 @@ int64_t WebSocket::GetLastPongMs() const {
     return last_pong_ms_.load(std::memory_order_relaxed);
 }
 
+int64_t WebSocket::GetLastReceiveMs() const {
+    return last_receive_ms_.load(std::memory_order_relaxed);
+}
+
 void WebSocket::OnTcpData(const std::string& data) {
+    if (!data.empty()) {
+        last_receive_ms_.store(esp_timer_get_time() / 1000, std::memory_order_relaxed);
+    }
     // 将新数据追加到接收缓冲区
     receive_buffer_.append(data);
     
@@ -390,13 +397,15 @@ void WebSocket::OnTcpData(const std::string& data) {
         size_t header_length = 2;
         if (payload_length == 126) {
             if (buffer_size - buffer_offset < 4) break; // 需要更多数据
-            payload_length = (buffer[buffer_offset + 2] << 8) | buffer[buffer_offset + 3];
+            payload_length = (static_cast<uint8_t>(buffer[buffer_offset + 2]) << 8) |
+                             static_cast<uint8_t>(buffer[buffer_offset + 3]);
             header_length += 2;
         } else if (payload_length == 127) {
             if (buffer_size - buffer_offset < 10) break; // 需要更多数据
             payload_length = 0;
             for (int i = 0; i < 8; ++i) {
-                payload_length = (payload_length << 8) | buffer[buffer_offset + 2 + i];
+                payload_length = (payload_length << 8) |
+                                 static_cast<uint8_t>(buffer[buffer_offset + 2 + i]);
             }
             header_length += 8;
         }
@@ -409,6 +418,18 @@ void WebSocket::OnTcpData(const std::string& data) {
         }
 
         if (buffer_size - buffer_offset < header_length + payload_length) break; // 需要更多数据
+
+        // Server-to-device audio is a complete, unmasked binary WebSocket
+        // message. Pass its payload directly to the receiver instead of
+        // copying a potentially large reply through two temporary vectors.
+        if (opcode == 0x2 && fin && !mask && !is_fragmented_) {
+            if (on_data_) {
+                on_data_(buffer + buffer_offset + header_length,
+                         static_cast<size_t>(payload_length), true);
+            }
+            buffer_offset += header_length + payload_length;
+            continue;
+        }
 
         // 解码有效载荷
         std::vector<char> payload(payload_length);
@@ -467,7 +488,11 @@ void WebSocket::OnTcpData(const std::string& data) {
 
     // 保留未处理的数据
     if (buffer_offset > 0) {
-        receive_buffer_ = receive_buffer_.substr(buffer_offset);
+        if (buffer_offset == buffer_size) {
+            receive_buffer_.clear();
+        } else {
+            receive_buffer_.erase(0, buffer_offset);
+        }
     }
 }
 

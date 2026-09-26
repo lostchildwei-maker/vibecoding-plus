@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		075B3D9C4645FCFCFACCFFF6 /* STTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54733654901D308D57343C4F /* STTService.swift */; };
 		9C3AEBBF16504713A70EE2E1 /* LocalQwenMLXSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328811DA24C34CCB9C103B3D /* LocalQwenMLXSession.swift */; };
+		A19E1F63B14D45C7A7021A01 /* SystemTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19E1F63B14D45C7A7021A02 /* SystemTTSService.swift */; };
+		B59E1F63B14D45C7A7021A01 /* LocalQwenTTSSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59E1F63B14D45C7A7021A02 /* LocalQwenTTSSession.swift */; };
+		B59E1F63B14D45C7A7021A03 /* qwen_tts_mlx_worker.py in Resources */ = {isa = PBXBuildFile; fileRef = B59E1F63B14D45C7A7021A04 /* qwen_tts_mlx_worker.py */; };
 		CF1D6F3ED66B418599953EB9 /* qwen_mlx_worker.py in Resources */ = {isa = PBXBuildFile; fileRef = 30A7027DE1BA40A8B15033CA /* qwen_mlx_worker.py */; };
 		0F40F311DC441DB0793382AE /* EnvironmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78D69D3C5C77FDF83B0F1ADA /* EnvironmentView.swift */; };
 		0FB47BE8249A976C8E2EAFC3 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618F6E6371DCCEA1712AC53B /* LogsView.swift */; };
@@ -79,6 +82,9 @@
 		251D39D20F6EA1BDDC9D3A5A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		30A7027DE1BA40A8B15033CA /* qwen_mlx_worker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = qwen_mlx_worker.py; sourceTree = "<group>"; };
 		328811DA24C34CCB9C103B3D /* LocalQwenMLXSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalQwenMLXSession.swift; sourceTree = "<group>"; };
+		A19E1F63B14D45C7A7021A02 /* SystemTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTTSService.swift; sourceTree = "<group>"; };
+		B59E1F63B14D45C7A7021A02 /* LocalQwenTTSSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalQwenTTSSession.swift; sourceTree = "<group>"; };
+		B59E1F63B14D45C7A7021A04 /* qwen_tts_mlx_worker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = qwen_tts_mlx_worker.py; sourceTree = "<group>"; };
 		29A2FE6304AC8D694B79E035 /* TodoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoService.swift; sourceTree = "<group>"; };
 		33FC105FAB70E5373A595E36 /* AccessibilitySupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySupport.swift; sourceTree = "<group>"; };
 		47DC063FE3301366C1C8FEAA /* ServerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerConfig.swift; sourceTree = "<group>"; };
@@ -192,6 +198,8 @@
 				100F9937AAED2DAADE9E92A2 /* RemindersSync.swift */,
 				54733654901D308D57343C4F /* STTService.swift */,
 				328811DA24C34CCB9C103B3D /* LocalQwenMLXSession.swift */,
+				A19E1F63B14D45C7A7021A02 /* SystemTTSService.swift */,
+				B59E1F63B14D45C7A7021A02 /* LocalQwenTTSSession.swift */,
 				85B6FFF1217771E95FD836D7 /* TextInjector.swift */,
 				DB9B42C3AF4B1CE5223B1B42 /* TodoAssistant.swift */,
 				29A2FE6304AC8D694B79E035 /* TodoService.swift */,
@@ -212,6 +220,7 @@
 			children = (
 				251D39D20F6EA1BDDC9D3A5A /* Assets.xcassets */,
 				30A7027DE1BA40A8B15033CA /* qwen_mlx_worker.py */,
+				B59E1F63B14D45C7A7021A04 /* qwen_tts_mlx_worker.py */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -331,6 +340,7 @@
 			files = (
 				5C620212C9EFB80FB94EEEBB /* Assets.xcassets in Resources */,
 				CF1D6F3ED66B418599953EB9 /* qwen_mlx_worker.py in Resources */,
+				B59E1F63B14D45C7A7021A03 /* qwen_tts_mlx_worker.py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,6 +396,8 @@
 				D0C476AE2C27F33B60C3A95E /* RootView.swift in Sources */,
 				075B3D9C4645FCFCFACCFFF6 /* STTService.swift in Sources */,
 				9C3AEBBF16504713A70EE2E1 /* LocalQwenMLXSession.swift in Sources */,
+				A19E1F63B14D45C7A7021A01 /* SystemTTSService.swift in Sources */,
+				B59E1F63B14D45C7A7021A01 /* LocalQwenTTSSession.swift in Sources */,
 				519DD4A059154AED4C4E3C3F /* ServerConfig.swift in Sources */,
 				E28A7192E8C4912B22FA3664 /* SettingsStore.swift in Sources */,
 				DA12DBF9745FA97363DB2E91 /* SettingsView.swift in Sources */,

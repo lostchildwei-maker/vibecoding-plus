@@ -40,6 +40,7 @@ final class AppState: ObservableObject {
         var sc = ServerConfig.load()
         sc.sendTarget = config.sendTarget.rawValue
         sc.sttProvider = config.sttProvider.rawValue
+        sc.ttsProvider = config.ttsProvider.rawValue
         sc.transcriptDeliveryMode = config.transcriptDeliveryMode
         sc.textInjectionMode = config.textInjectionMode
         sc.port = config.port
@@ -70,6 +71,10 @@ final class AppState: ObservableObject {
         sc.qwenMlxLanguage = config.qwenMlxLanguage
         sc.qwenMlxContext = config.qwenMlxContext
         sc.qwenMlxCacheDirectory = config.qwenMlxCacheDirectory
+        sc.qwenTTSPython = config.qwenTTSPython
+        sc.qwenTTSModel = config.qwenTTSModel
+        sc.qwenTTSVoice = config.qwenTTSVoice
+        sc.qwenTTSCacheDirectory = config.qwenTTSCacheDirectory
         sc.claudeCommand = config.claudeCommand
         sc.claudeCwd = config.claudeCwd
         sc.claudeMaxTurns = config.claudeMaxTurns

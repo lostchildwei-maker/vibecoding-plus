@@ -56,6 +56,21 @@ enum STTProvider: String, CaseIterable, Identifiable {
     }
 }
 
+enum TTSProvider: String, CaseIterable, Identifiable {
+    case off
+    case system
+    case qwenMlx = "qwen_mlx"
+
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .off: "关闭"
+        case .system: "Mac 系统语音"
+        case .qwenMlx: "Qwen 本地"
+        }
+    }
+}
+
 struct EnvironmentCheck: Identifiable, Codable {
     var id: String
     var label: String
@@ -97,6 +112,7 @@ struct DesktopSettings: Codable {
 struct AppConfig {
     var sendTarget: SendTarget = .textInjector
     var sttProvider: STTProvider = .volcengine
+    var ttsProvider: TTSProvider = .off
     var transcriptDeliveryMode: String = "confirm_on_device"
     var textInjectionMode: String = "type_and_enter"
     var openaiApiKey: String = ""
@@ -120,6 +136,10 @@ struct AppConfig {
     var qwenMlxLanguage: String = "Chinese"
     var qwenMlxContext: String = "Eira Hermes Note 4"
     var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
+    var qwenTTSPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/.venv/bin/python"
+    var qwenTTSModel: String = "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16"
+    var qwenTTSVoice: String = "Serena"
+    var qwenTTSCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/models"
     var lanSharedSecret: String = ""
     var deepSeekApiKey: String = ""
     var deepSeekModel: String = "deepseek-chat"

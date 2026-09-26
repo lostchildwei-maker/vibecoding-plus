@@ -25,6 +25,7 @@ enum LANDeviceMessage {
     static let firmware_result = "firmware_result"
     static let firmware_check_result = "firmware_check_result"
     static let discover_host = "discover_host"
+    static let tts_state = "tts_state"
 }
 
 enum LANServerMessage {

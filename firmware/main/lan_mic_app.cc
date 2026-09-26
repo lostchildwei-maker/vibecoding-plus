@@ -76,6 +76,7 @@ LanMicApp::LanMicApp()
 }
 
 LanMicApp::~LanMicApp() {
+    StopSpeakerDownlink();
     DisconnectWebSocket();
     if (server_msg_queue_ != nullptr) {
         PendingServerMessage item;
@@ -111,6 +112,10 @@ bool LanMicApp::Initialize() {
     codec_->Start();
     codec_->EnableOutput(false);
     codec_->SetOutputVolume(volume_);
+    if (!StartSpeakerDownlink()) {
+        ESP_LOGE(kLanMicTag, "Speaker downlink initialization failed");
+        return false;
+    }
 
     status_text_ = "启动 Wi‑Fi";
     cli_status_text_ = "CLI 空闲";
@@ -448,4 +453,3 @@ void LanMicApp::DrainPendingEvents(int64_t now_ms) {
         HandleNetEvent(error);
     }
 }
-

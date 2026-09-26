@@ -114,6 +114,16 @@ private:
         size_t len = 0;
     };
     QueueHandle_t server_msg_queue_ = nullptr;
+    struct PendingSpeakerFrame {
+        uint8_t* data = nullptr;
+        size_t len = 0;
+        uint32_t generation = 0;
+    };
+    QueueHandle_t speaker_frame_queue_ = nullptr;
+    TaskHandle_t speaker_task_handle_ = nullptr;
+    std::atomic<uint32_t> speaker_generation_{0};
+    std::atomic<bool> speaker_accepting_{false};
+    std::atomic<bool> speaker_output_owned_{false};
     enum class PendingNetEvent : uint8_t {
         WifiConnecting,
         WifiConnected,
@@ -365,6 +375,12 @@ private:
     std::vector<std::string> SliceLines(const std::vector<std::string>& lines, int offset, size_t max_lines) const;
     void UpdateLed();
     void PlayBeep(int freq_hz, int duration_ms);
+    bool StartSpeakerDownlink();
+    void StopSpeakerDownlink();
+    void EnqueueSpeakerFrame(const char* data, size_t len);
+    void CancelSpeakerPlayback();
+    static void SpeakerTaskEntry(void* arg);
+    void SpeakerTask();
     // Turns the speaker amp back off once the queued beep has drained out of
     // the I2S DMA; polled from the main loop so PlayBeep() stays non-blocking.
     void ServiceAudioOutput(int64_t now_ms);

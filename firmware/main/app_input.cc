@@ -1227,16 +1227,18 @@ void LanMicApp::Run() {
                 awaiting_pong_baseline_ms = pong_baseline_ms;
             }
             const int64_t last_pong_ms = heartbeat_ws->GetLastPongMs();
+            const int64_t last_receive_ms = heartbeat_ws->GetLastReceiveMs();
             if (awaiting_pong_since_ms > 0 && last_pong_ms > awaiting_pong_baseline_ms) {
                 awaiting_pong_since_ms = 0;
                 awaiting_pong_baseline_ms = 0;
             }
             const bool client_ping_timed_out =
-                awaiting_pong_since_ms > 0 && (now_ms - awaiting_pong_since_ms) >= kPongTimeoutMs;
+                awaiting_pong_since_ms > 0 &&
+                (now_ms - std::max(awaiting_pong_since_ms, last_receive_ms)) >= kPongTimeoutMs;
             const bool server_silent_too_long =
                 awaiting_pong_since_ms == 0 &&
                 last_pong_ms > 0 &&
-                (now_ms - last_pong_ms) >= kServerSilenceTimeoutMs;
+                (now_ms - std::max(last_pong_ms, last_receive_ms)) >= kServerSilenceTimeoutMs;
             if (client_ping_timed_out || server_silent_too_long) {
                 ESP_LOGW(kLanMicTag,
                          "WebSocket heartbeat timed out: reason=%s last_pong_ms=%lld baseline_ms=%lld ping_ms=%lld now_ms=%lld",
@@ -1334,6 +1336,7 @@ void LanMicApp::Run() {
             continue;
         }
         if (pressed && !last_pressed) {
+            CancelSpeakerPlayback();
             ESP_LOGI(kLanMicTag, "BOOT press connected=%d connect_task=%d phase=%d",
                      IsServerConnected() ? 1 : 0,
                      connect_attempt_running_.load(std::memory_order_acquire) ? 1 : 0,

@@ -20,6 +20,7 @@ device_to_server:
   - firmware_result
   - firmware_check_result
   - discover_host
+  - tts_state
 
 server_to_device:
   - auth_challenge
@@ -56,3 +57,20 @@ send_targets:
 voice_modes:
   - normal
   - todo
+
+# Server-to-device binary WebSocket audio messages (independent of JSON messages).
+# Each message starts with ASCII "TTS1" plus one command byte:
+# S=start followed by a uint32 little-endian total PCM byte count. The device
+# temporarily disables Wi-Fi power saving so the complete audio can arrive promptly.
+# F=one complete little-endian 16 kHz mono PCM16 reply, maximum 1.5 MiB.
+# C=cancel with no payload. Messages are sent in order.
+# The device stores the complete F payload in PSRAM, verifies its byte count,
+# restores normal Wi-Fi power saving, then plays it once. No audio is stored in flash.
+# Qwen local TTS may instead use ASCII "TTS2" plus a command byte:
+# S=start followed by uint32 PCM sample count, uint32 packed Opus byte count,
+# and uint16 encoder pre-skip at 16 kHz (all little-endian).
+# F=one complete sequence of uint16 packet length + raw Opus packet pairs.
+# The device receives all packets, decodes to 16 kHz mono PCM in PSRAM, skips
+# the encoder pre-roll, and plays exactly the announced PCM sample count.
+# C=cancel, shared with TTS1. Text follows the device's playing acknowledgement.
+# Device-to-server JSON tts_state reports playing, done, cancelled, or error.

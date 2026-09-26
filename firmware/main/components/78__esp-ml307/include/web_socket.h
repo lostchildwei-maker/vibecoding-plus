@@ -28,6 +28,7 @@ public:
     bool Ping();
     void Close();
     int64_t GetLastPongMs() const;
+    int64_t GetLastReceiveMs() const;
 
     void OnConnected(std::function<void()> callback);
     void OnDisconnected(std::function<void()> callback);
@@ -47,6 +48,7 @@ private:
     bool handshake_completed_ = false;
     std::atomic<bool> connected_{false};
     std::atomic<int64_t> last_pong_ms_{0};
+    std::atomic<int64_t> last_receive_ms_{0};
 
     // Mutex for sending data and replying pong
     std::mutex send_mutex_;
