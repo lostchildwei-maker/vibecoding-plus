@@ -187,10 +187,11 @@ OPENAI_BASE_URL=https://api.openai.com/v1   # 留空使用官方；可填第三�
 # QWEN_MLX_PYTHON=/path/to/venv/bin/python
 # QWEN_MLX_MODEL=Qwen/Qwen3-ASR-0.6B
 # QWEN_MLX_LANGUAGE=Chinese
+# QWEN_MLX_CONTEXT=Eira Hermes Note 4
 # QWEN_MLX_CACHE_DIRECTORY=/path/to/local/model-cache
 ```
 
-「Qwen 本地」需要在所选 Python 环境中安装 `mlx-qwen3-asr`。首次使用时，客户端在后台加载模型；之后的录音复用同一模型进程。模型文件存放在 `QWEN_MLX_CACHE_DIRECTORY`，切换 0.6B / 1.7B 模型后需要在设置页保存并应用。Note 4 固件与 Hermes 接入无需修改。
+「Qwen 本地」需要在所选 Python 环境中安装 `mlx-qwen3-asr`。首次使用时，客户端在后台加载模型；之后的录音复用同一模型进程。`QWEN_MLX_CONTEXT` 可填写 Eira、Hermes、Note 4 等术语以帮助识别专有名词，它不会清除语气词。模型文件存放在 `QWEN_MLX_CACHE_DIRECTORY`，切换 0.6B / 1.7B 模型后需要在设置页保存并应用。Note 4 固件与 Hermes 接入无需修改。
 
 ### 构建并运行原生客户端
 

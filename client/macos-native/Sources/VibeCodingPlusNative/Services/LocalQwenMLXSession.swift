@@ -14,13 +14,13 @@ final class LocalQwenMLXSession: @unchecked Sendable {
     private var errorTail = ""
 
     func transcribe(wavData: Data, python: String, model: String,
-                    language: String, cacheDirectory: String) async throws -> String {
+                    language: String, context: String, cacheDirectory: String) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             queue.async {
                 do {
                     let text = try self.transcribeBlocking(
                         wavData: wavData, python: python, model: model,
-                        language: language, cacheDirectory: cacheDirectory
+                        language: language, context: context, cacheDirectory: cacheDirectory
                     )
                     continuation.resume(returning: text)
                 } catch {
@@ -44,7 +44,7 @@ final class LocalQwenMLXSession: @unchecked Sendable {
     }
 
     private func transcribeBlocking(wavData: Data, python: String, model: String,
-                                    language: String, cacheDirectory: String) throws -> String {
+                                    language: String, context: String, cacheDirectory: String) throws -> String {
         let temporaryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("vibecoding-qwen-\(UUID().uuidString).wav")
         try wavData.write(to: temporaryURL, options: .atomic)
@@ -53,7 +53,8 @@ final class LocalQwenMLXSession: @unchecked Sendable {
         try ensureWorker(python: python, model: model, cacheDirectory: cacheDirectory)
         let request: [String: String] = [
             "path": temporaryURL.path,
-            "language": language.trimmingCharacters(in: .whitespacesAndNewlines)
+            "language": language.trimmingCharacters(in: .whitespacesAndNewlines),
+            "context": context.trimmingCharacters(in: .whitespacesAndNewlines)
         ]
         let payload = try JSONSerialization.data(withJSONObject: request) + Data([0x0a])
         do {

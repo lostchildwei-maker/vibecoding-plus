@@ -68,6 +68,7 @@ final class AppState: ObservableObject {
         sc.qwenMlxPython = config.qwenMlxPython
         sc.qwenMlxModel = config.qwenMlxModel
         sc.qwenMlxLanguage = config.qwenMlxLanguage
+        sc.qwenMlxContext = config.qwenMlxContext
         sc.qwenMlxCacheDirectory = config.qwenMlxCacheDirectory
         sc.claudeCommand = config.claudeCommand
         sc.claudeCwd = config.claudeCwd

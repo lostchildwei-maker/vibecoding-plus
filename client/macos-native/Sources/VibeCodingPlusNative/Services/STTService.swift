@@ -82,6 +82,7 @@ struct STTService {
                 python: config.qwenMlxPython,
                 model: config.qwenMlxModel,
                 language: config.qwenMlxLanguage,
+                context: config.qwenMlxContext,
                 cacheDirectory: config.qwenMlxCacheDirectory
             )
         }

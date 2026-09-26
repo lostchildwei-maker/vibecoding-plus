@@ -24,8 +24,9 @@ for line in sys.stdin:
     try:
         request = json.loads(line)
         language = request.get("language") or None
+        context = request.get("context") or ""
         with contextlib.redirect_stdout(sys.stderr):
-            result = session.transcribe(request["path"], language=language)
+            result = session.transcribe(request["path"], language=language, context=context)
         send({"text": result.text})
     except Exception as exc:
         send({"error": f"本地 Qwen 转写失败：{exc}"})

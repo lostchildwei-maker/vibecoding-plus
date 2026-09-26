@@ -76,6 +76,7 @@ struct ServerConfig {
     var qwenMlxPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/.venv/bin/python"
     var qwenMlxModel: String = "Qwen/Qwen3-ASR-0.6B"
     var qwenMlxLanguage: String = "Chinese"
+    var qwenMlxContext: String = "Eira Hermes Note 4"
     var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
 
     // MARK: - Claude Code
@@ -321,6 +322,7 @@ private extension ServerConfig {
         c.qwenMlxPython = v["QWEN_MLX_PYTHON"] ?? c.qwenMlxPython
         c.qwenMlxModel = v["QWEN_MLX_MODEL"] ?? c.qwenMlxModel
         c.qwenMlxLanguage = v["QWEN_MLX_LANGUAGE"] ?? c.qwenMlxLanguage
+        c.qwenMlxContext = v["QWEN_MLX_CONTEXT"] ?? c.qwenMlxContext
         c.qwenMlxCacheDirectory = v["QWEN_MLX_CACHE_DIRECTORY"] ?? c.qwenMlxCacheDirectory
 
         // Claude Code

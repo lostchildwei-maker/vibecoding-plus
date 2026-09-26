@@ -48,11 +48,11 @@ final class STTProviderResolutionTests: XCTestCase {
         do {
             let first = try await session.transcribe(
                 wavData: audio, python: python, model: "Qwen/Qwen3-ASR-0.6B",
-                language: "Chinese", cacheDirectory: cache
+                language: "Chinese", context: "Eira Hermes Note 4", cacheDirectory: cache
             )
             let second = try await session.transcribe(
                 wavData: audio, python: python, model: "Qwen/Qwen3-ASR-0.6B",
-                language: "Chinese", cacheDirectory: cache
+                language: "Chinese", context: "Eira Hermes Note 4", cacheDirectory: cache
             )
             XCTAssertFalse(first.isEmpty)
             XCTAssertEqual(second, first)

@@ -36,6 +36,7 @@ struct SettingsStore {
         config.qwenMlxPython = values["QWEN_MLX_PYTHON"] ?? config.qwenMlxPython
         config.qwenMlxModel = values["QWEN_MLX_MODEL"] ?? config.qwenMlxModel
         config.qwenMlxLanguage = values["QWEN_MLX_LANGUAGE"] ?? config.qwenMlxLanguage
+        config.qwenMlxContext = values["QWEN_MLX_CONTEXT"] ?? config.qwenMlxContext
         config.qwenMlxCacheDirectory = values["QWEN_MLX_CACHE_DIRECTORY"] ?? config.qwenMlxCacheDirectory
         config.lanSharedSecret = values["LAN_SHARED_SECRET"] ?? ""
         config.deepSeekApiKey = values["DEEPSEEK_API_KEY"] ?? ""
@@ -106,6 +107,7 @@ struct SettingsStore {
         values["QWEN_MLX_PYTHON"] = nilIfEmpty(config.qwenMlxPython)
         values["QWEN_MLX_MODEL"] = nilIfEmpty(config.qwenMlxModel)
         values["QWEN_MLX_LANGUAGE"] = nilIfEmpty(config.qwenMlxLanguage)
+        values["QWEN_MLX_CONTEXT"] = nilIfEmpty(config.qwenMlxContext)
         values["QWEN_MLX_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenMlxCacheDirectory)
         values["LAN_SHARED_SECRET"] = nilIfEmpty(config.lanSharedSecret)
         values["DEEPSEEK_API_KEY"] = nilIfEmpty(config.deepSeekApiKey)

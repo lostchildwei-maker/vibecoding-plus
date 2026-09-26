@@ -241,7 +241,9 @@ struct SettingsView: View {
                         .pickerStyle(.segmented)
                     }
                     InkFormRow("语言") { TextField("", text: $state.config.qwenMlxLanguage).textFieldStyle(.plain) }
+                    InkFormRow("术语提示") { TextField("", text: $state.config.qwenMlxContext).textFieldStyle(.plain) }
                     InkFormRow("模型存储目录") { TextField("", text: $state.config.qwenMlxCacheDirectory).textFieldStyle(.plain) }
+                    sectionHint("术语提示帮助识别专有名词，不会清除语气词。")
                     sectionHint("在 Mac 上运行；切换模型后保存并应用。首次使用新模型时需要加载或下载。")
                 }
             }

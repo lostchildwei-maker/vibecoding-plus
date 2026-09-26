@@ -118,6 +118,7 @@ struct AppConfig {
     var qwenMlxPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/.venv/bin/python"
     var qwenMlxModel: String = "Qwen/Qwen3-ASR-0.6B"
     var qwenMlxLanguage: String = "Chinese"
+    var qwenMlxContext: String = "Eira Hermes Note 4"
     var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
     var lanSharedSecret: String = ""
     var deepSeekApiKey: String = ""
