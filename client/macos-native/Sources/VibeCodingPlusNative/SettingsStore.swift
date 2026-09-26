@@ -40,6 +40,10 @@ struct SettingsStore {
         config.codexSkipGitRepoCheck = values["CODEX_SKIP_GIT_REPO_CHECK"] == "1"
         config.claudeDangerouslySkipPermissions = values["CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS"] == "1"
         config.claudeMaxTurns = Int(values["CLAUDE_MAX_TURNS"] ?? "") ?? 10
+        config.hermesBaseUrl = values["HERMES_BASE_URL"] ?? config.hermesBaseUrl
+        config.hermesApiKey = values["HERMES_API_KEY"] ?? ""
+        config.hermesSessionId = values["HERMES_SESSION_ID"] ?? config.hermesSessionId
+        config.hermesModel = values["HERMES_MODEL"] ?? config.hermesModel
         config.mockTranscript = values["MOCK_TRANSCRIPT"] ?? ""
         config.port = Int(values["LAN_VOICE_PORT"] ?? values["PORT"] ?? "") ?? 8765
         config.discoveryHostId = values["LAN_DISCOVERY_HOST_ID"] ?? "VibeServer"
@@ -104,6 +108,10 @@ struct SettingsStore {
         values["CLAUDE_COMMAND"] = nilIfEmpty(config.claudeCommand)
         values["CODEX_COMMAND"] = nilIfEmpty(config.codexCommand)
         values["CLAUDE_MAX_TURNS"] = config.claudeMaxTurns != 10 ? String(config.claudeMaxTurns) : nil
+        values["HERMES_BASE_URL"] = nilIfEmpty(config.hermesBaseUrl)
+        values["HERMES_API_KEY"] = nilIfEmpty(config.hermesApiKey)
+        values["HERMES_SESSION_ID"] = nilIfEmpty(config.hermesSessionId)
+        values["HERMES_MODEL"] = nilIfEmpty(config.hermesModel)
         values["MOCK_TRANSCRIPT"] = nilIfEmpty(config.mockTranscript)
         values["CODEX_SKIP_GIT_REPO_CHECK"] = config.codexSkipGitRepoCheck ? "1" : nil
         values["CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS"] = config.claudeDangerouslySkipPermissions ? "1" : nil
@@ -149,12 +157,14 @@ struct SettingsStore {
 
     private func writeEnv(_ values: [String: String]) throws {
         try FileManager.default.createDirectory(at: configDirectory, withIntermediateDirectories: true)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: configDirectory.path)
         let body = values
             .filter { !$0.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             .sorted { $0.key < $1.key }
             .map { "\($0.key)=\($0.value.replacingOccurrences(of: "\n", with: " "))" }
             .joined(separator: "\n") + "\n"
         try body.write(to: configURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: configURL.path)
     }
 
     private func inferredProvider(_ values: [String: String]) -> STTProvider {

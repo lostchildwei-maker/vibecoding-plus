@@ -22,6 +22,7 @@ enum SendTarget: String, CaseIterable, Identifiable {
     case textInjector = "text_injector"
     case codexExec = "codex_exec"
     case claudeCode = "claude_code"
+    case hermesAgent = "hermes_agent"
 
     var id: String { rawValue }
 
@@ -30,6 +31,7 @@ enum SendTarget: String, CaseIterable, Identifiable {
         case .textInjector: "输入注入"
         case .codexExec: "Codex"
         case .claudeCode: "Claude Code"
+        case .hermesAgent: "Hermes Agent"
         }
     }
 }
@@ -117,6 +119,10 @@ struct AppConfig {
     var deepSeekBaseUrl: String = "https://api.deepseek.com"
     var claudeCommand: String = "claude"
     var codexCommand: String = "codex"
+    var hermesBaseUrl: String = "http://127.0.0.1:8642"
+    var hermesApiKey: String = ""
+    var hermesSessionId: String = "note4-voice"
+    var hermesModel: String = "hermes-agent"
     var claudeMaxTurns: Int = 10
     var mockTranscript: String = ""
     var codexCwd: String = ""

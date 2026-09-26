@@ -72,6 +72,10 @@ final class AppState: ObservableObject {
         sc.codexCommand = config.codexCommand
         sc.codexCwd = config.codexCwd
         sc.codexSkipGitRepoCheck = config.codexSkipGitRepoCheck
+        sc.hermesBaseUrl = config.hermesBaseUrl
+        sc.hermesApiKey = config.hermesApiKey
+        sc.hermesSessionId = config.hermesSessionId
+        sc.hermesModel = config.hermesModel
         sc.mockTranscript = config.mockTranscript
         sc.remindersSyncEnabled = config.remindersSyncEnabled
         sc.remindersListName = config.remindersListName
@@ -226,11 +230,13 @@ final class AppState: ObservableObject {
 
     func openPermissions() {
         checker.openPermissions()
-        inlineStatus = "已打开权限设置并定位当前应用；如弹出麦克风授权，请选择允许"
+        inlineStatus = "已打开权限设置并定位当前应用"
         Task {
-            let micGranted = await MicrophonePermission.requestIfNeeded()
-            if !micGranted {
-                MicrophonePermission.openSettings()
+            if config.sendTarget != .hermesAgent {
+                let micGranted = await MicrophonePermission.requestIfNeeded()
+                if !micGranted {
+                    MicrophonePermission.openSettings()
+                }
             }
             for _ in 0..<8 {
                 try? await Task.sleep(for: .seconds(3))
@@ -291,6 +297,8 @@ final class AppState: ObservableObject {
             case .claudeCode:
                 config.claudeCwd = url.path
             case .textInjector:
+                break
+            case .hermesAgent:
                 break
             }
         }

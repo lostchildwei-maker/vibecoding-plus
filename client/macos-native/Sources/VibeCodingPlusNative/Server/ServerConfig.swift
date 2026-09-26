@@ -84,6 +84,13 @@ struct ServerConfig {
     var codexCwd: String = ""
     var codexSkipGitRepoCheck: Bool = false
 
+    // MARK: - Hermes Agent API Server
+
+    var hermesBaseUrl: String = "http://127.0.0.1:8642"
+    var hermesApiKey: String = ""
+    var hermesSessionId: String = "note4-voice"
+    var hermesModel: String = "hermes-agent"
+
     // MARK: - Reminders
 
     var remindersSyncEnabled: Bool = false
@@ -193,6 +200,7 @@ extension ServerConfig {
             withIntermediateDirectories: true
         )
         try? body.write(toFile: path, atomically: true, encoding: String.Encoding.utf8)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path)
     }
 }
 
@@ -312,6 +320,12 @@ private extension ServerConfig {
         c.codexCommand = v["CODEX_COMMAND"] ?? c.codexCommand
         c.codexCwd = v["CODEX_CWD"] ?? ""
         c.codexSkipGitRepoCheck = isTruthy(v["CODEX_SKIP_GIT_REPO_CHECK"])
+
+        // Hermes Agent
+        c.hermesBaseUrl = v["HERMES_BASE_URL"] ?? c.hermesBaseUrl
+        c.hermesApiKey = v["HERMES_API_KEY"] ?? ""
+        c.hermesSessionId = v["HERMES_SESSION_ID"] ?? c.hermesSessionId
+        c.hermesModel = v["HERMES_MODEL"] ?? c.hermesModel
 
         // Reminders
         c.remindersSyncEnabled = isTruthy(v["REMINDERS_SYNC_ENABLED"])

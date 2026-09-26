@@ -83,6 +83,7 @@ struct EnvironmentChecker {
                 version: versions["whisper_cpp"] ?? ""
             ),
             sttCheck(config: config),
+            hermesCheck(config: config),
             macosPermissionsCheck(config: config)
         ]
 
@@ -105,7 +106,8 @@ struct EnvironmentChecker {
 
         let needsAccessibility = config.sendTarget == .textInjector
         let needsReminders = config.remindersSyncEnabled
-        let needsMic = true
+        // Note 4 sends its recorded audio over LAN; the Mac never opens its microphone.
+        let needsMic = config.sendTarget != .hermesAgent
 
         var missing: [String] = []
         if needsAccessibility && !accessibility { missing.append("辅助功能") }
@@ -114,7 +116,7 @@ struct EnvironmentChecker {
 
         let allRequired = [needsAccessibility ? accessibility : true,
                            needsReminders ? reminderGranted : true,
-                           micGranted].allSatisfy { $0 }
+                           needsMic ? micGranted : true].allSatisfy { $0 }
         let anyMissing = !missing.isEmpty
 
         var status = "optional"
@@ -126,7 +128,7 @@ struct EnvironmentChecker {
 
         let parts: [String] = [
             "辅助功能: \(accessibility ? "已授权" : (needsAccessibility ? "未授权" : "不需要"))",
-            "麦克风: \(MicrophonePermission.statusText)",
+            "麦克风: \(needsMic ? MicrophonePermission.statusText : "不需要（音频来自 Note 4）")",
             "提醒事项: \(reminderGranted ? "已授权" : (needsReminders ? "未授权" : "不需要"))"
         ]
         let version = parts.joined(separator: " · ")
@@ -143,7 +145,7 @@ struct EnvironmentChecker {
             label: "macOS 权限",
             type: "permission",
             status: status,
-            required: needsAccessibility || needsReminders,
+            required: needsAccessibility || needsReminders || needsMic,
             installable: false,
             installLabel: "",
             command: "",
@@ -151,6 +153,29 @@ struct EnvironmentChecker {
             version: version,
             purpose: "输入注入、麦克风、提醒事项访问",
             note: note
+        )
+    }
+
+    private func hermesCheck(config: AppConfig) -> EnvironmentCheck {
+        let required = config.sendTarget == .hermesAgent
+        let hasKey = !config.hermesApiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let address = URLComponents(string: config.hermesBaseUrl)
+        let host = address?.host?.lowercased() ?? ""
+        let localAddress = (address?.scheme == "http" || address?.scheme == "https") &&
+            ["127.0.0.1", "localhost", "::1"].contains(host)
+        return EnvironmentCheck(
+            id: "hermes_api",
+            label: "Hermes API Server",
+            type: "configuration",
+            status: required && (!hasKey || !localAddress) ? "missing" : "ok",
+            required: required,
+            installable: false,
+            installLabel: "",
+            command: "",
+            path: "",
+            version: "",
+            purpose: "把转写文字发到本机 Hermes 会话",
+            note: required ? "需要本机 API 地址和 API Key；在 Hermes 设置中启用 API Server" : "仅 Hermes 模式需要"
         )
     }
 

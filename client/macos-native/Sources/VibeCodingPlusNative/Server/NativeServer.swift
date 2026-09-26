@@ -57,6 +57,22 @@ private let externalWatchIntervalMs: UInt64 = 2_000
 private let keepaliveMissLimit = 2
 private let minPlausibleEpochMs: Double = 1_577_836_800_000  // 2020-01-01 UTC
 
+private enum HermesBridgeError: LocalizedError {
+    case missingKey
+    case invalidAddress
+    case httpStatus(Int)
+    case invalidReply
+
+    var errorDescription: String? {
+        switch self {
+        case .missingKey: "请先设置 Hermes API Key"
+        case .invalidAddress: "Hermes 地址必须是本机的 HTTP 服务"
+        case .httpStatus(let code): "Hermes 请求失败（HTTP \(code)）"
+        case .invalidReply: "Hermes 没有返回可显示的文字"
+        }
+    }
+}
+
 // MARK: - NativeServer
 
 /// Main orchestrator that replaces the 2 462-line Node.js `server.mjs`.
@@ -103,6 +119,8 @@ actor NativeServer {
     private var firmwareOtaProgress: [String: (phase: String, pct: Int)] = [:]
     private var streamingSttSessions: [UUID: QwenStreamingSTTSession] = [:]
     private var cliPromptQueue: [(text: String, connId: UUID, injectionMode: String?)] = []
+    private var hermesBusy = false
+    private var hermesSessionId: String
     private var firmwareCheckContinuations: [String: (token: UUID, continuation: CheckedContinuation<Bool, Never>)] = [:]
 
     // MARK: Callbacks to UI layer (nonisolated for external wiring)
@@ -120,6 +138,7 @@ actor NativeServer {
 
     init(config: ServerConfig) {
         self.config = config
+        self.hermesSessionId = config.hermesSessionId
         self.sttService = STTService(config: config)
         self.todoAssistant = TodoAssistant(config: config)
         self.codexSession = CodexSessionManager()
@@ -1090,6 +1109,11 @@ actor NativeServer {
                 sendJson(to: conn, ["type": LANServerMessage.status, "status": "cli_busy"])
                 return
             }
+            if config.sendTarget == "hermes_agent" && hermesBusy {
+                enqueuePrompt(text, connId: connId, injectionMode: nil)
+                sendJson(to: conn, ["type": LANServerMessage.status, "status": "cli_busy"])
+                return
+            }
         }
 
         if voiceMode == "todo" {
@@ -1111,12 +1135,12 @@ actor NativeServer {
     private func handleSetTarget(_ message: [String: Any], connId: UUID) async {
         guard let conn = await wsServer.connection(id: connId) else { return }
         let nextTarget = ((message["sendTarget"] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        let validTargets: Set<String> = ["text_injector", "codex_exec", "claude_code"]
+        let validTargets: Set<String> = ["text_injector", "codex_exec", "claude_code", "hermes_agent"]
         guard validTargets.contains(nextTarget) else {
             sendJson(to: conn, ["type": LANServerMessage.warning, "warning": "invalid_send_target"])
             return
         }
-        guard !codexSession.isRunning && !claudeSession.isRunning else {
+        guard !codexSession.isRunning && !claudeSession.isRunning && !hermesBusy else {
             sendJson(to: conn, ["type": LANServerMessage.status, "status": "cli_busy"])
             return
         }
@@ -1139,7 +1163,7 @@ actor NativeServer {
 
     /// Called from the macOS app when runtime input settings change without a full restart.
     func updateRuntimeInput(sendTarget: String, deliveryMode: String, injectionMode: String) {
-        let validTargets: Set<String> = ["text_injector", "codex_exec", "claude_code"]
+        let validTargets: Set<String> = ["text_injector", "codex_exec", "claude_code", "hermes_agent"]
         let nextTarget = validTargets.contains(sendTarget) ? sendTarget : config.sendTarget
         let nextDelivery = deliveryMode == "immediate" ? "immediate" : "confirm_on_device"
         let nextInjection = injectionMode == "type_only" ? "type_only" : "type_and_enter"
@@ -1320,6 +1344,8 @@ actor NativeServer {
                 return
             }
             launchClaudePrompt(text)
+        case "hermes_agent":
+            await runHermesPrompt(text, connId: connId)
         default:
             try await textInjector.inject(text, mode: injectionMode == "type_only" ? .typeOnly : .typeAndEnter,
                                           dryRun: config.dryRunTextInjection)
@@ -1343,6 +1369,8 @@ actor NativeServer {
                 return
             }
             await runClaudePrompt(text)
+        case "hermes_agent":
+            await runHermesPrompt(text, connId: connId)
         default:
             cliView.latestUserText = text
             cliView.statusLine = "Typed to terminal"
@@ -1398,6 +1426,85 @@ actor NativeServer {
         }
     }
 
+    private func runHermesPrompt(_ text: String, connId: UUID) async {
+        if hermesBusy {
+            enqueuePrompt(text, connId: connId, injectionMode: nil)
+            return
+        }
+        hermesBusy = true
+        cliView.latestUserText = text
+        cliView.latestAssistantText = ""
+        setCliState(phase: "running", statusLine: "Hermes 正在处理", threadId: hermesSessionId)
+        broadcastCliSummary()
+        appendCliLog("user: \(text.prefix(80))")
+
+        do {
+            let answer = try await requestHermesCompletion(text)
+            cliView.latestAssistantText = answer
+            appendCliLog("assistant: \(answer.prefix(80))")
+            setCliState(phase: "idle", statusLine: "Hermes 已回复", threadId: hermesSessionId)
+            broadcastCliSummary()
+        } catch {
+            appendCliLog("Hermes error: \(error.localizedDescription)")
+            setCliState(phase: "error", statusLine: error.localizedDescription)
+        }
+
+        hermesBusy = false
+        await drainPromptQueue()
+    }
+
+    private func requestHermesCompletion(_ text: String) async throws -> String {
+        let key = config.hermesApiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { throw HermesBridgeError.missingKey }
+
+        let base = config.hermesBaseUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard var endpoint = URLComponents(string: base),
+              endpoint.scheme == "http" || endpoint.scheme == "https",
+              let host = endpoint.host?.lowercased(),
+              ["127.0.0.1", "localhost", "::1"].contains(host),
+              endpoint.user == nil, endpoint.password == nil,
+              endpoint.query == nil, endpoint.fragment == nil else {
+            throw HermesBridgeError.invalidAddress
+        }
+        endpoint.path = endpoint.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        endpoint.path = "/" + (endpoint.path.isEmpty ? "" : endpoint.path + "/") + "v1/chat/completions"
+        guard let url = endpoint.url else { throw HermesBridgeError.invalidAddress }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = max(30, config.cliTimeoutSec)
+        request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let sessionId = hermesSessionId.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !sessionId.isEmpty {
+            request.setValue(sessionId, forHTTPHeaderField: "X-Hermes-Session-Id")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "model": config.hermesModel.isEmpty ? "hermes-agent" : config.hermesModel,
+            "messages": [["role": "user", "content": text]],
+            "stream": false
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw HermesBridgeError.invalidReply }
+        guard (200..<300).contains(http.statusCode) else {
+            throw HermesBridgeError.httpStatus(http.statusCode)
+        }
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let message = choices.first?["message"] as? [String: Any],
+              let answer = message["content"] as? String else {
+            throw HermesBridgeError.invalidReply
+        }
+        let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw HermesBridgeError.invalidReply }
+        if let returnedSession = http.value(forHTTPHeaderField: "X-Hermes-Session-Id"),
+           !returnedSession.isEmpty {
+            hermesSessionId = returnedSession
+        }
+        return trimmed
+    }
+
     private func handleCLIEvent(_ event: CLIEvent, source: String, connId: UUID?) async {
         switch event {
         case .text(let text, let role):
@@ -1446,7 +1553,7 @@ actor NativeServer {
     }
 
     private func drainPromptQueue() async {
-        guard !codexSession.isRunning, !claudeSession.isRunning else { return }
+        guard !codexSession.isRunning, !claudeSession.isRunning, !hermesBusy else { return }
         guard !cliPromptQueue.isEmpty else { return }
         let next = cliPromptQueue.removeFirst()
         appendServiceLog("CLI 出队: \(next.text.prefix(40))")
@@ -1965,6 +2072,7 @@ actor NativeServer {
         if !stored.isEmpty { return stored }
         switch config.sendTarget {
         case "claude_code": return "Claude"
+        case "hermes_agent": return "Hermes"
         case "text_injector": return "Inject"
         default: return "Codex"
         }
