@@ -158,7 +158,7 @@ private:
 
     // 文本渲染辅助
     void render_text_to_buffer(const char* text, int x, int y, const lv_font_t* font,
-                               bool white, int scale = 1);
+                               bool white, int scale = 1, bool bold = false);
 };
 
 #endif // __CUSTOM_LCD_DISPLAY_H__

@@ -1288,7 +1288,7 @@ static uint32_t utf8_next(const char** pp) {
 // 文本渲染：用 LVGL 字体 API 逐字符写入 1bpp 帧缓冲
 // =======================================================
 void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int start_y,
-                                             const lv_font_t* font, bool white, int scale) {
+                                             const lv_font_t* font, bool white, int scale, bool bold) {
     int cursor_x = start_x;
     int cursor_y = start_y;
     const char* p = text;
@@ -1336,6 +1336,9 @@ void CustomLcdDisplay::render_text_to_buffer(const char* text, int start_x, int 
                     int py = gy + row / scale;
                     if (px >= 0 && px < Width && py >= 0 && py < Height) {
                         set_pixel_1bpp(buffer, Width, px, py, white);
+                        if (bold && px + 1 < Width) {
+                            set_pixel_1bpp(buffer, Width, px + 1, py, white);
+                        }
                     }
                 }
             }
@@ -1388,7 +1391,7 @@ void CustomLcdDisplay::DrawTexts(const std::vector<TextItem>& texts, bool clear)
             ? &SourceHanSansSC_Medium_slim
             : &BUILTIN_TEXT_FONT;
         render_text_to_buffer(item.content.c_str(), item.x, item.y, font,
-                              item.inverse ? !inverted_ : inverted_, compact ? 2 : 1);
+                              item.inverse ? !inverted_ : inverted_, compact ? 2 : 1, item.bold);
 
         const int text_w = static_cast<int>(item.content.size()) * item.size;
         const int text_h = item.size + 6;

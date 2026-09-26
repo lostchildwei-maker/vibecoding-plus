@@ -477,8 +477,8 @@ void LanMicApp::UpdateDisplay() {
         const std::string display_name = assistant_display_name_.empty()
             ? (send_target_ == "hermes_agent" ? "Hermes" : GetToolLabel())
             : assistant_display_name_;
-        texts.push_back({single_line(display_name + ":", 14), kLeftX, kColumnTitleY, 12});
-        const int reply_y = kColumnTitleY + 16;
+        texts.push_back({single_line(display_name + ":", 14), kLeftX, kColumnTitleY, 16, false, true});
+        const int reply_y = kColumnTitleY + kLineHeight;
         const int reply_bottom = quota_status_text.empty() ? kColumnBottomY : 244;
         const size_t reply_visible_lines = reply_y + 16 > reply_bottom ? 0
             : static_cast<size_t>((reply_bottom - reply_y - 16) / kLineHeight + 1);
@@ -496,8 +496,8 @@ void LanMicApp::UpdateDisplay() {
         }
 
         const std::string user_name = user_display_name_.empty() ? "我" : user_display_name_;
-        texts.push_back({single_line(user_name + ":", 14), kRightX, kColumnTitleY, 12});
-        int prompt_y = kColumnTitleY + 16;
+        texts.push_back({single_line(user_name + ":", 14), kRightX, kColumnTitleY, 16, false, true});
+        int prompt_y = kColumnTitleY + kLineHeight;
         const size_t prompt_visible_lines = prompt_y + 16 > kColumnBottomY ? 0
             : static_cast<size_t>((kColumnBottomY - prompt_y - 16) / kLineHeight + 1);
         for (const auto& line : SliceLines(WrapText(transcript_text_, kColumnChars),
