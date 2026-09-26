@@ -70,16 +70,21 @@ for line in sys.stdin:
         text = request["text"].strip()
         if not text:
             raise ValueError("语音回复内容为空")
+        reference_audio = Path(request["reference_audio"]).expanduser()
+        reference_text = request["reference_text"].strip()
+        if not reference_audio.is_file() or not reference_text:
+            raise ValueError("Eira 参考音频或参考文字未配置")
         output_path = Path(request["path"])
         raw_path = output_path.with_suffix(".pcm")
         ogg_path = output_path.with_suffix(".opus")
         pieces = []
         sample_rate = None
         with contextlib.redirect_stdout(sys.stderr):
-            for result in model.generate_custom_voice(
+            for result in model.generate(
                 text=text,
-                speaker=request.get("speaker") or "Serena",
-                language="Chinese",
+                ref_audio=str(reference_audio),
+                ref_text=reference_text,
+                lang_code="chinese",
                 stream=False,
             ):
                 mx.eval(result.audio)

@@ -41,12 +41,15 @@ final class LocalQwenTTSSession: @unchecked Sendable {
     }
 
     func synthesize(_ text: String, python: String, model: String,
-                    speaker: String, cacheDirectory: String) async throws -> LocalQwenAudio {
+                    referenceAudio: String, referenceText: String,
+                    cacheDirectory: String) async throws -> LocalQwenAudio {
         try await withCheckedThrowingContinuation { continuation in
             queue.async {
                 do {
                     let audio = try self.synthesizeBlocking(text, python: python, model: model,
-                                                            speaker: speaker, cacheDirectory: cacheDirectory)
+                                                            referenceAudio: referenceAudio,
+                                                            referenceText: referenceText,
+                                                            cacheDirectory: cacheDirectory)
                     continuation.resume(returning: audio)
                 } catch {
                     continuation.resume(throwing: error)
@@ -69,13 +72,15 @@ final class LocalQwenTTSSession: @unchecked Sendable {
     }
 
     private func synthesizeBlocking(_ text: String, python: String, model: String,
-                                    speaker: String, cacheDirectory: String) throws -> LocalQwenAudio {
+                                    referenceAudio: String, referenceText: String,
+                                    cacheDirectory: String) throws -> LocalQwenAudio {
         let temporaryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("vibecoding-tts-\(UUID().uuidString).opuspack")
         defer { try? FileManager.default.removeItem(at: temporaryURL) }
 
         try ensureWorker(python: python, model: model, cacheDirectory: cacheDirectory)
-        let request = ["text": text, "speaker": speaker, "path": temporaryURL.path]
+        let request = ["text": text, "reference_audio": referenceAudio,
+                       "reference_text": referenceText, "path": temporaryURL.path]
         let payload = try JSONSerialization.data(withJSONObject: request) + Data([0x0a])
         do {
             try input?.write(contentsOf: payload)

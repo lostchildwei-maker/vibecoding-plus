@@ -73,7 +73,8 @@ final class AppState: ObservableObject {
         sc.qwenMlxCacheDirectory = config.qwenMlxCacheDirectory
         sc.qwenTTSPython = config.qwenTTSPython
         sc.qwenTTSModel = config.qwenTTSModel
-        sc.qwenTTSVoice = config.qwenTTSVoice
+        sc.qwenTTSReferenceAudio = config.qwenTTSReferenceAudio
+        sc.qwenTTSReferenceText = config.qwenTTSReferenceText
         sc.qwenTTSCacheDirectory = config.qwenTTSCacheDirectory
         sc.claudeCommand = config.claudeCommand
         sc.claudeCwd = config.claudeCwd

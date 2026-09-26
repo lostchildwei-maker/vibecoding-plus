@@ -1494,7 +1494,8 @@ actor NativeServer {
         let ttsProvider = config.ttsProvider
         let ttsPython = config.qwenTTSPython
         let ttsModel = config.qwenTTSModel
-        let ttsVoice = config.qwenTTSVoice
+        let ttsReferenceAudio = config.qwenTTSReferenceAudio
+        let ttsReferenceText = config.qwenTTSReferenceText
         let ttsCacheDirectory = config.qwenTTSCacheDirectory
         speechTasks[connId] = Task { [weak self] in
             guard let self else { return }
@@ -1503,7 +1504,8 @@ actor NativeServer {
                 if ttsProvider == "qwen_mlx" {
                     audio = .opus(try await self.localTTS.synthesize(
                         answer, python: ttsPython, model: ttsModel,
-                        speaker: ttsVoice, cacheDirectory: ttsCacheDirectory
+                        referenceAudio: ttsReferenceAudio, referenceText: ttsReferenceText,
+                        cacheDirectory: ttsCacheDirectory
                     ))
                 } else {
                     audio = .pcm(try await SystemTTSService.synthesize(answer))

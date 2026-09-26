@@ -40,7 +40,8 @@ struct SettingsStore {
         config.qwenMlxCacheDirectory = values["QWEN_MLX_CACHE_DIRECTORY"] ?? config.qwenMlxCacheDirectory
         config.qwenTTSPython = values["QWEN_TTS_PYTHON"] ?? config.qwenTTSPython
         config.qwenTTSModel = values["QWEN_TTS_MODEL"] ?? config.qwenTTSModel
-        config.qwenTTSVoice = values["QWEN_TTS_VOICE"] ?? config.qwenTTSVoice
+        config.qwenTTSReferenceAudio = values["QWEN_TTS_REFERENCE_AUDIO"] ?? config.qwenTTSReferenceAudio
+        config.qwenTTSReferenceText = values["QWEN_TTS_REFERENCE_TEXT"] ?? config.qwenTTSReferenceText
         config.qwenTTSCacheDirectory = values["QWEN_TTS_CACHE_DIRECTORY"] ?? config.qwenTTSCacheDirectory
         config.lanSharedSecret = values["LAN_SHARED_SECRET"] ?? ""
         config.deepSeekApiKey = values["DEEPSEEK_API_KEY"] ?? ""
@@ -117,7 +118,9 @@ struct SettingsStore {
         values["QWEN_MLX_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenMlxCacheDirectory)
         values["QWEN_TTS_PYTHON"] = nilIfEmpty(config.qwenTTSPython)
         values["QWEN_TTS_MODEL"] = nilIfEmpty(config.qwenTTSModel)
-        values["QWEN_TTS_VOICE"] = nilIfEmpty(config.qwenTTSVoice)
+        values["QWEN_TTS_VOICE"] = nil
+        values["QWEN_TTS_REFERENCE_AUDIO"] = nilIfEmpty(config.qwenTTSReferenceAudio)
+        values["QWEN_TTS_REFERENCE_TEXT"] = nilIfEmpty(config.qwenTTSReferenceText)
         values["QWEN_TTS_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenTTSCacheDirectory)
         values["LAN_SHARED_SECRET"] = nilIfEmpty(config.lanSharedSecret)
         values["DEEPSEEK_API_KEY"] = nilIfEmpty(config.deepSeekApiKey)

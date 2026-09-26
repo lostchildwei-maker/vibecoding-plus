@@ -80,8 +80,9 @@ struct ServerConfig {
     var qwenMlxContext: String = "Eira Hermes Note 4"
     var qwenMlxCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-mlx/models"
     var qwenTTSPython: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/.venv/bin/python"
-    var qwenTTSModel: String = "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16"
-    var qwenTTSVoice: String = "Serena"
+    var qwenTTSModel: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/tts-model-compare/qwen-base"
+    var qwenTTSReferenceAudio: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/reference-eira.wav"
+    var qwenTTSReferenceText: String = "嗯，听到了，这条测试也通了。"
     var qwenTTSCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/models"
 
     // MARK: - Claude Code
@@ -332,7 +333,8 @@ private extension ServerConfig {
         c.qwenMlxCacheDirectory = v["QWEN_MLX_CACHE_DIRECTORY"] ?? c.qwenMlxCacheDirectory
         c.qwenTTSPython = v["QWEN_TTS_PYTHON"] ?? c.qwenTTSPython
         c.qwenTTSModel = v["QWEN_TTS_MODEL"] ?? c.qwenTTSModel
-        c.qwenTTSVoice = v["QWEN_TTS_VOICE"] ?? c.qwenTTSVoice
+        c.qwenTTSReferenceAudio = v["QWEN_TTS_REFERENCE_AUDIO"] ?? c.qwenTTSReferenceAudio
+        c.qwenTTSReferenceText = v["QWEN_TTS_REFERENCE_TEXT"] ?? c.qwenTTSReferenceText
         c.qwenTTSCacheDirectory = v["QWEN_TTS_CACHE_DIRECTORY"] ?? c.qwenTTSCacheDirectory
 
         // Claude Code

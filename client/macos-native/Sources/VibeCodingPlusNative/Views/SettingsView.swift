@@ -166,15 +166,11 @@ struct SettingsView: View {
                         InkFormRow("模型") {
                             TextField("", text: $state.config.qwenTTSModel).textFieldStyle(.plain)
                         }
-                        InkFormRow("声线") {
-                            Picker("声线", selection: $state.config.qwenTTSVoice) {
-                                Text("Serena · 温柔女声").tag("Serena")
-                                Text("Vivian · 明亮女声").tag("Vivian")
-                                Text("Uncle Fu · 低沉男声").tag("Uncle_Fu")
-                                Text("Dylan · 北京男声").tag("Dylan")
-                                Text("Eric · 成都男声").tag("Eric")
-                            }
-                            .labelsHidden()
+                        InkFormRow("参考音频") {
+                            TextField("", text: $state.config.qwenTTSReferenceAudio).textFieldStyle(.plain)
+                        }
+                        InkFormRow("参考文字") {
+                            TextField("", text: $state.config.qwenTTSReferenceText).textFieldStyle(.plain)
                         }
                         InkFormRow("模型存储目录") {
                             TextField("", text: $state.config.qwenTTSCacheDirectory).textFieldStyle(.plain)
