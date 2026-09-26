@@ -53,6 +53,7 @@ public:
         int x = 0;
         int y = 0;
         int size = 24;  // 16 or 24
+        bool inverse = false;  // draw in the opposite color of normal text
     };
 
     // 直接在设备端渲染文本到帧缓冲区（由子类实现）

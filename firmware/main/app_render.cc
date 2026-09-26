@@ -462,6 +462,112 @@ void LanMicApp::UpdateDisplay() {
         quota_status_text = "5H:" + q5 + " 7d:" + qw;
     }
 
+    // The coding conversation alone uses the two-column layout. Menus and
+    // plan selection keep their existing full-width presentation and inputs.
+    if (render_page == Page::Summary && !render_offline_todo_mode &&
+        !todo_menu_open_ && plan_options_.empty()) {
+        constexpr int kTopBarHeight = 40;
+        constexpr int kDividerX = 200;
+        constexpr int kLeftX = 12;
+        constexpr int kRightX = 212;
+        constexpr int kColumnChars = 11;
+        constexpr int kColumnTitleY = 48;
+        constexpr int kColumnBottomY = 264;
+
+        const std::string display_name = repo_name_.empty()
+            ? (send_target_ == "hermes_agent" ? "Hermes" : GetToolLabel())
+            : repo_name_;
+        const auto name_lines = SliceLines(WrapText(display_name, kColumnChars), 0, 2);
+        int left_y = kColumnTitleY;
+        for (const auto& line : name_lines) {
+            texts.push_back({line, kLeftX, left_y, 16});
+            left_y += kLineHeight;
+        }
+
+        std::string reply_status = cli_status_text_.empty()
+            ? display_name + " 空闲" : cli_status_text_;
+        if (phase_ == Phase::Running && !latest_assistant_text_.empty()) {
+            reply_status = "上次回复 · 处理中";
+        }
+        texts.push_back({single_line(reply_status, kColumnChars), kLeftX, left_y, 16});
+        const int reply_y = left_y + kLineHeight;
+        const int reply_bottom = quota_status_text.empty() ? kColumnBottomY : 244;
+        const size_t reply_visible_lines = reply_y + 16 > reply_bottom ? 0
+            : static_cast<size_t>((reply_bottom - reply_y - 16) / kLineHeight + 1);
+        std::string reply_body = BuildReplyBody();
+        if (reply_body == cli_status_text_) {
+            reply_body.clear();  // the status is already visible above the reply
+        }
+        const auto reply_lines = WrapText(reply_body, kColumnChars);
+        const int reply_offset = std::clamp(
+            summary_scroll_offset_, 0,
+            std::max(0, static_cast<int>(reply_lines.size()) - static_cast<int>(reply_visible_lines)));
+        int y = reply_y;
+        for (const auto& line : SliceLines(reply_lines, reply_offset, reply_visible_lines)) {
+            texts.push_back({line, kLeftX, y, 16});
+            y += kLineHeight;
+        }
+        if (!quota_status_text.empty()) {
+            texts.push_back({single_line(quota_status_text, kColumnChars), kLeftX, 246, 16});
+        }
+
+        texts.push_back({"输入", kRightX, kColumnTitleY, 16});
+        int prompt_y = kColumnTitleY + kLineHeight;
+        std::string input_status;
+        if (phase_ == Phase::Recording || phase_ == Phase::Transcribing || phase_ == Phase::Error) {
+            input_status = status_text_;
+        } else if (has_pending_transcript_) {
+            input_status = "待发送";
+        } else if (network_state_ != NetworkState::Server) {
+            input_status = GetNetworkLabel();
+        }
+        if (!input_status.empty()) {
+            texts.push_back({single_line(input_status, kColumnChars), kRightX, prompt_y, 16});
+            prompt_y += kLineHeight;
+        }
+        if (phase_ == Phase::Error && !hint_text_.empty()) {
+            texts.push_back({single_line(hint_text_, kColumnChars), kRightX, prompt_y, 16});
+            prompt_y += kLineHeight;
+        }
+        const size_t prompt_visible_lines = prompt_y + 16 > kColumnBottomY ? 0
+            : static_cast<size_t>((kColumnBottomY - prompt_y - 16) / kLineHeight + 1);
+        for (const auto& line : SliceLines(WrapText(BuildPromptBody(), kColumnChars),
+                                           0, prompt_visible_lines)) {
+            texts.push_back({line, kRightX, prompt_y, 16});
+            prompt_y += kLineHeight;
+        }
+
+        texts.push_back({GetFooterText(), 10, kFooterTextY, 16});
+        display_->DrawTexts(texts, true);
+
+        // Raw 1bpp black is inverted by the display driver in dark mode, so
+        // the header always contrasts with the body in either style.
+        const int header_row_bytes = (display_->width() + 7) >> 3;
+        std::vector<uint8_t> header_background(header_row_bytes * kTopBarHeight, 0xFF);
+        display_->WriteRaw1bpp(0, 0, display_->width(), kTopBarHeight,
+                               header_background.data(), header_background.size());
+        std::vector<Display::TextItem> header_texts;
+        std::string battery_label = battery_known_
+            ? std::to_string(std::clamp(battery_level_, 0, 100)) + "%"
+            : "--";
+        if (battery_known_ && battery_charging_) {
+            battery_label += "+";
+        }
+        header_texts.push_back({std::string(GetNetworkLabel()) + " · " + battery_label,
+                                10, 12, 16, true});
+        header_texts.push_back({"编程", 184, 12, 16, true});
+        header_texts.push_back({GetPhaseLabel(), 274, 12, 16, true});
+        display_->DrawTexts(header_texts, false);
+
+        const int divider_height = kColumnBottomY - kTopBarHeight;
+        std::vector<uint8_t> divider(divider_height, 0x80);
+        display_->WriteRaw1bpp(kDividerX, kTopBarHeight, 1, divider_height,
+                               divider.data(), divider.size());
+        DrawHorizontalLine(kFooterTopY);
+        display_->RequestUrgentRefresh();
+        return;
+    }
+
     texts.push_back({GetNetworkLabel(), 28, 9, 16});
     texts.push_back({(render_page == Page::Todo || render_offline_todo_mode) ? "待办" : "编程", 96, 9, 16});
     texts.push_back({GetPhaseLabel(), 166, 9, 16});
