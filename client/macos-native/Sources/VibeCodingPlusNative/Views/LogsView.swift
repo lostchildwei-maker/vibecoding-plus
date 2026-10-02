@@ -41,7 +41,7 @@ struct LogsView: View {
                     )
                     LogText(lines: filteredCliLines)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 480)
+                        .frame(maxHeight: .infinity)
                 }
             case .service:
                 logCard {
@@ -52,7 +52,7 @@ struct LogsView: View {
                     )
                     LogText(lines: filteredServiceLines)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 480)
+                        .frame(maxHeight: .infinity)
                 }
             }
         }
@@ -64,8 +64,8 @@ struct LogsView: View {
             content()
         }
         .padding(18)
-        .frame(minWidth: 0, maxWidth: .infinity, alignment: .topLeading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .stroke(.primary.opacity(0.16), lineWidth: 1)

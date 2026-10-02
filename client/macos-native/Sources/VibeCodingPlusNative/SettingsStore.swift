@@ -43,6 +43,8 @@ struct SettingsStore {
         config.qwenTTSReferenceAudio = values["QWEN_TTS_REFERENCE_AUDIO"] ?? config.qwenTTSReferenceAudio
         config.qwenTTSReferenceText = values["QWEN_TTS_REFERENCE_TEXT"] ?? config.qwenTTSReferenceText
         config.qwenTTSCacheDirectory = values["QWEN_TTS_CACHE_DIRECTORY"] ?? config.qwenTTSCacheDirectory
+        config.qwenTTSKeepWarm = values["QWEN_TTS_KEEP_WARM"] == "1"
+        config.qwenTTSIdleSeconds = max(60, Int(values["QWEN_TTS_IDLE_SECONDS"] ?? "") ?? 300)
         config.lanSharedSecret = values["LAN_SHARED_SECRET"] ?? ""
         config.deepSeekApiKey = values["DEEPSEEK_API_KEY"] ?? ""
         config.deepSeekModel = values["DEEPSEEK_MODEL"] ?? "deepseek-chat"
@@ -124,6 +126,8 @@ struct SettingsStore {
         values["QWEN_TTS_REFERENCE_AUDIO"] = nilIfEmpty(config.qwenTTSReferenceAudio)
         values["QWEN_TTS_REFERENCE_TEXT"] = nilIfEmpty(config.qwenTTSReferenceText)
         values["QWEN_TTS_CACHE_DIRECTORY"] = nilIfEmpty(config.qwenTTSCacheDirectory)
+        values["QWEN_TTS_KEEP_WARM"] = config.qwenTTSKeepWarm ? "1" : "0"
+        values["QWEN_TTS_IDLE_SECONDS"] = String(max(60, config.qwenTTSIdleSeconds))
         values["LAN_SHARED_SECRET"] = nilIfEmpty(config.lanSharedSecret)
         values["DEEPSEEK_API_KEY"] = nilIfEmpty(config.deepSeekApiKey)
         values["DEEPSEEK_MODEL"] = config.deepSeekModel != "deepseek-chat" ? config.deepSeekModel : nil

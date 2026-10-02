@@ -31,6 +31,7 @@
     "firmware:host-test": "bash -c 'ROOT=\"${IDF_PATH:-$HOME/esp/esp-idf}\" && c++ -std=c++20 -I firmware/main -I \"$ROOT/components/json/cJSON\" firmware/main/lan_mic_app_utils.cc \"$ROOT/components/json/cJSON/cJSON.c\" firmware/host-tests/utils_host_test.cc -o /tmp/vcp-firmware-host-test && /tmp/vcp-firmware-host-test'",
     "native:dist:mac": "bash scripts/build-native-mac.sh",
     "native:install:mac": "bash scripts/install-native-mac.sh",
+    "native:update:mac": "bash scripts/build-native-mac.sh && bash scripts/install-native-mac.sh",
     "native:open": "open client/macos-native/VibeCodingPlusNative.xcodeproj"
   },
   "keywords": [

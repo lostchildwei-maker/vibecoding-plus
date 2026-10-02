@@ -76,12 +76,25 @@ struct RootView: View {
                 detailContent
                     .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if selection == .settings {
+                    SettingsActionBar()
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 12)
+                        .background(InkTheme.paper)
+                        .overlay(alignment: .top) {
+                            Divider()
+                        }
+                }
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     serviceControl
                 }
             }
-            .navigationTitle("")
+            .toolbarBackground(InkTheme.paper, for: .windowToolbar)
+            .toolbarBackground(.visible, for: .windowToolbar)
+            .navigationTitle("VibeCoding Plus")
             .toolbarTitleDisplayMode(.inline)
         }
         .navigationSplitViewStyle(.balanced)
@@ -97,7 +110,7 @@ struct RootView: View {
                     .overlay(Circle().stroke(.primary.opacity(0.15), lineWidth: 1))
                 Text(state.serviceRunning ? "服务运行中" : "服务未启动")
                     .font(.callout.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
             }
             Divider().frame(height: 18)
 
@@ -108,12 +121,14 @@ struct RootView: View {
                     Label("重启", systemImage: "arrow.clockwise")
                 }
                 .inkToolbarButton()
+                .help("重启设备连接服务")
                 Button {
                     Task { await state.stopService() }
                 } label: {
                     Label("停止", systemImage: "stop.fill")
                 }
                 .inkToolbarButton()
+                .help("停止设备连接服务")
             } else {
                 Button {
                     Task { await state.startService() }
@@ -121,6 +136,7 @@ struct RootView: View {
                     Label("启动服务", systemImage: "play.fill")
                 }
                 .inkToolbarProminentButton()
+                .help("启动设备连接服务；共享语音服务独立运行")
             }
 
             Button {
@@ -129,6 +145,7 @@ struct RootView: View {
                 Label("刷新", systemImage: "arrow.triangle.2.circlepath")
             }
             .inkToolbarButton()
+            .help("刷新设备状态与环境检测")
         }
     }
 
@@ -156,7 +173,7 @@ struct RootView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(group.label)
                                     .font(.caption.weight(.bold))
-                                    .foregroundStyle(InkTheme.ink.opacity(0.5))
+                                    .foregroundStyle(InkTheme.secondaryInk)
                                     .tracking(1)
                                     .padding(.horizontal, 12)
                                     .padding(.bottom, 2)
@@ -197,9 +214,10 @@ struct RootView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("VibeCoding")
                     .font(.headline)
+                    .foregroundStyle(InkTheme.ink)
                 Text("原生客户端")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
             }
         }
     }
@@ -241,6 +259,7 @@ struct RootView: View {
             .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .hoverEffect()
     }
 

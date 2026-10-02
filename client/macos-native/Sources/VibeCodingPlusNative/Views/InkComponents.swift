@@ -34,7 +34,7 @@ struct PageHeader<Trailing: View>: View {
                 if !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                         .lineLimit(2)
                 }
             }
@@ -99,7 +99,7 @@ struct MetricView: View {
                     Spacer()
                     Text(title.uppercased())
                         .font(.caption2.monospaced().weight(.bold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                         .tracking(0.5)
                 }
                 Text(value)
@@ -109,7 +109,7 @@ struct MetricView: View {
                     .foregroundStyle(tone == .idle ? .secondary : .primary)
                 Text(detail.isEmpty ? "--" : detail)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -154,7 +154,7 @@ struct InkPanel<Content: View>: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 13, style: .continuous)
                 .stroke(accent ? InkTheme.accent.opacity(0.25) : .primary.opacity(0.16), lineWidth: 1)
@@ -178,7 +178,7 @@ struct InkCard<Content: View>: View {
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                Color(nsColor: .textBackgroundColor).opacity(isHovering && hoverable ? 0.92 : 0.72),
+                isHovering && hoverable ? InkTheme.paper : InkTheme.surface,
                 in: RoundedRectangle(cornerRadius: 11, style: .continuous)
             )
             .overlay(
@@ -210,12 +210,12 @@ struct EmptyPanel: View {
             VStack(spacing: 12) {
                 Image(systemName: symbol)
                     .font(.system(size: 30, weight: .light))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                 Text(title)
                     .font(.headline)
                 Text(detail)
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, minHeight: 180)
@@ -240,12 +240,12 @@ struct InkStatusPill: View {
             }
             Text(detail)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
                 .lineLimit(2)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(.primary.opacity(0.14), lineWidth: 1))
     }
 }
@@ -306,14 +306,37 @@ struct InkFormRow<Content: View>: View {
         HStack(alignment: .center, spacing: 14) {
             Text(label)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.ink)
                 .frame(width: 132, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
             content
+                .foregroundStyle(InkTheme.ink)
                 .padding(.horizontal, 10)
                 .frame(minHeight: 34)
-                .background(.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.primary.opacity(0.16), lineWidth: 1))
+                .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(InkTheme.border, lineWidth: 1))
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(label)
+    }
+}
+
+/// 原生文本输入保留选择与键盘操作，焦点额外用清晰的轮廓标示。
+struct InkTextFieldStyle: TextFieldStyle {
+    @FocusState private var isFocused: Bool
+
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .textFieldStyle(.plain)
+            .foregroundStyle(InkTheme.ink)
+            .tint(InkTheme.focusRing)
+            .padding(.vertical, 6)
+            .focused($isFocused)
+            .overlay {
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(isFocused ? InkTheme.focusRing : .clear, lineWidth: 2)
+                    .allowsHitTesting(false)
+            }
     }
 }
 
@@ -330,7 +353,7 @@ struct PickerRow<Content: View>: View {
                 .labelsHidden()
             Text(hint)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -374,6 +397,8 @@ struct InkSegmentedPicker<Option: Hashable>: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(label(option))
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
                 .frame(maxWidth: .infinity)
                 .overlay(alignment: .trailing) {
                     if !isLast {
@@ -401,12 +426,15 @@ struct PathField: View {
     var body: some View {
         HStack(spacing: 8) {
             TextField("", text: $text)
-                .textFieldStyle(.plain)
+                .textFieldStyle(InkTextFieldStyle())
+                .accessibilityLabel("目录路径")
             Button { choose() } label: {
                 Image(systemName: "folder")
                     .font(.caption.weight(.semibold))
             }
             .inkIconButton()
+            .help("选择目录")
+            .accessibilityLabel("选择目录")
         }
     }
 }
@@ -437,7 +465,7 @@ struct SliderRow: View {
             if !hint.isEmpty {
                 Text(hint)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .padding(.leading, 152)
             }
         }
@@ -457,7 +485,7 @@ struct InfoRow: View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
             Spacer()
             Text(value.isEmpty ? "--" : value)
                 .font(.callout.monospaced())
@@ -478,7 +506,7 @@ struct InkDivider: View {
 func sectionHint(_ text: String) -> some View {
     Text(text)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(InkTheme.secondaryInk)
 }
 
 struct LogText: View {

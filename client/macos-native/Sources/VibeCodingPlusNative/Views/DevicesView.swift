@@ -47,13 +47,13 @@ struct DevicesView: View {
                 if state.config.lanSharedSecret.isEmpty {
                     Text("Host: \(state.config.discoveryHostId) · 局域网直连")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                     Text("无需输入配对码")
                         .font(.title3.weight(.bold))
                 } else {
                     Text("Host: \(state.config.discoveryHostId) · 核对码")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                     Text(state.pairingCode.isEmpty ? "------" : state.pairingCode)
                         .font(.title2.monospaced().weight(.bold))
                         .textSelection(.enabled)
@@ -64,7 +64,7 @@ struct DevicesView: View {
                  ? "当前未启用 LAN 密钥。设备连上即生效；NFC 打开的是连接说明页，不需要再输入配对码或确认配对。"
                  : "核对码当前只用于人工确认，不需要输入到手机或设备。设备连上后，在下方点「下发密钥」完成密钥下发。")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(InkTheme.secondaryInk)
                 .frame(maxWidth: 360, alignment: .leading)
         }
         .padding(14)
@@ -102,7 +102,7 @@ struct DeviceCard: View {
                     Spacer()
                     Text("\(progress.phase) \(progress.pct)%")
                         .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                 }
                 ProgressView(value: Double(progress.pct), total: 100)
             }
@@ -113,11 +113,11 @@ struct DeviceCard: View {
         HStack(spacing: 10) {
             Text("设备操作")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
             if state.config.lanSharedSecret.isEmpty {
                 Text("当前为直连模式")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
                     .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
@@ -190,7 +190,7 @@ struct DeviceCard: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)
                     .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 6))
@@ -204,11 +204,11 @@ struct DeviceCard: View {
                 VStack(alignment: .trailing, spacing: 3) {
                     Text("远程地址")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                         .tracking(0.5)
                     Text(addr)
                         .font(.callout.monospaced())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                         .textSelection(.enabled)
                 }
             }
@@ -241,7 +241,7 @@ struct DeviceCard: View {
                 Text(label)
                     .font(.caption2.weight(.bold))
             }
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(InkTheme.secondaryInk)
             .tracking(0.3)
             Text(value)
                 .font(.callout.weight(.medium))
@@ -256,7 +256,7 @@ struct DeviceCard: View {
         HStack(spacing: 10) {
             Text("切换模式")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
             modeButton(title: "编程", icon: "chevron.left.forwardslash.chevron.right", mode: "normal")
             modeButton(title: "备忘", icon: "checklist", mode: "todo")
             Spacer()

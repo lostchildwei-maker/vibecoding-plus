@@ -23,10 +23,10 @@ struct DisplayConfigView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "info.circle")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(InkTheme.secondaryInk)
                             Text("间隔越小屏幕更新越及时，但耗电略增；2 秒左右较平衡")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(InkTheme.secondaryInk)
                         }
                     }
                     .frame(maxHeight: .infinity)
@@ -50,7 +50,7 @@ struct DisplayConfigView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("预览")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(InkTheme.secondaryInk)
                                 .tracking(0.3)
                             stylePreview
                         }

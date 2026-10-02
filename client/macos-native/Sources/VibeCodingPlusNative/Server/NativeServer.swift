@@ -92,7 +92,6 @@ actor NativeServer {
     private let wsServer = WebSocketServer()
     private let discoveryServer = DiscoveryServer()
     private let sttService: STTService
-    private let localTTS = LocalQwenTTSSession()
     private let remindersSync = RemindersSync()
     private let todoAssistant: TodoAssistant
     private var todoService: TodoService!
@@ -229,7 +228,6 @@ actor NativeServer {
         firmwareOtaHost.stop()
         cancelAllStreamingSttSessions()
         await sttService.stop()
-        await localTTS.stop()
         clientStates.removeAll()
         orphanMissedPings.removeAll()
         recentHelloNonces.removeAll()
@@ -1492,21 +1490,12 @@ actor NativeServer {
         pendingSpeechText[connId] = answer
         pendingSpeechStartedAt[connId] = Date()
         let ttsProvider = config.ttsProvider
-        let ttsPython = config.qwenTTSPython
-        let ttsModel = config.qwenTTSModel
-        let ttsReferenceAudio = config.qwenTTSReferenceAudio
-        let ttsReferenceText = config.qwenTTSReferenceText
-        let ttsCacheDirectory = config.qwenTTSCacheDirectory
         speechTasks[connId] = Task { [weak self] in
             guard let self else { return }
             do {
                 let audio: SpeechAudio
                 if ttsProvider == "qwen_mlx" {
-                    audio = .opus(try await self.localTTS.synthesize(
-                        answer, python: ttsPython, model: ttsModel,
-                        referenceAudio: ttsReferenceAudio, referenceText: ttsReferenceText,
-                        cacheDirectory: ttsCacheDirectory
-                    ))
+                    audio = .opus(try await SharedTTSClient.synthesize(answer))
                 } else {
                     audio = .pcm(try await SystemTTSService.synthesize(answer))
                 }

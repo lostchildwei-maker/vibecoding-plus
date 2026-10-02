@@ -9,6 +9,8 @@ struct VibeCodingPlusNativeApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(state)
+                // 墨水屏纸面主题与原生控件必须采用同一个外观，包括工具栏和弹出菜单。
+                .preferredColorScheme(.light)
                 .frame(minWidth: 980, minHeight: 680)
                 .task {
                     appDelegate.appState = state

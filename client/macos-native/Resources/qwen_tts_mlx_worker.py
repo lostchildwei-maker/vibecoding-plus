@@ -4,6 +4,7 @@ import contextlib
 import json
 import subprocess
 import sys
+import wave
 from pathlib import Path
 
 
@@ -103,6 +104,15 @@ for line in sys.stdin:
         gain = min(10 ** (12 / 20), 10 ** (-18 / 20) / rms, 10 ** (-1 / 20) / peak)
         audio = audio * gain
         pcm = (np.clip(audio, -1, 1) * 32767).astype("<i2")
+        output_format = request.get("format", "opuspack")
+        if output_format == "wav":
+            with wave.open(str(output_path), "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(16000)
+                wav.writeframes(pcm.tobytes())
+            send({"bytes": output_path.stat().st_size, "codec": "wav", "pcmSamples": int(pcm.size)})
+            continue
         try:
             raw_path.write_bytes(pcm.tobytes())
             command = [
@@ -116,10 +126,20 @@ for line in sys.stdin:
                 str(ogg_path),
             ]
             subprocess.run(command, check=True, capture_output=True, timeout=30)
-            packed, pre_skip = extract_opus_packets(ogg_path.read_bytes())
-            output_path.write_bytes(packed)
-            send({"bytes": len(packed), "codec": "opus", "pcmSamples": int(pcm.size),
-                  "preSkipSamples": pre_skip})
+            ogg_data = ogg_path.read_bytes()
+            packed, pre_skip = extract_opus_packets(ogg_data)
+            if output_format in ("ogg", "opus"):
+                output_path.write_bytes(ogg_data)
+                send({"bytes": len(ogg_data), "codec": "ogg", "pcmSamples": int(pcm.size)})
+            elif output_format == "mp3":
+                subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error",
+                                "-y", "-i", str(ogg_path), str(output_path)],
+                               check=True, capture_output=True, timeout=30)
+                send({"bytes": output_path.stat().st_size, "codec": "mp3", "pcmSamples": int(pcm.size)})
+            else:
+                output_path.write_bytes(packed)
+                send({"bytes": len(packed), "codec": "opus", "pcmSamples": int(pcm.size),
+                      "preSkipSamples": pre_skip})
         finally:
             raw_path.unlink(missing_ok=True)
             ogg_path.unlink(missing_ok=True)

@@ -72,7 +72,7 @@ struct OverviewView: View {
 
     private var deliveryLabel: String {
         switch state.config.transcriptDeliveryMode {
-        case "immediate": "立即输入"
+        case "immediate": state.config.sendTarget == .hermesAgent ? "立即发送" : "立即输入"
         case "confirm_on_device": "设备确认"
         default: state.config.transcriptDeliveryMode
         }
@@ -89,14 +89,14 @@ struct LiveField: View {
             if !icon.isEmpty {
                 Image(systemName: icon)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .frame(width: 18, alignment: .center)
                     .padding(.top, 2)
             }
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                 Text(value.isEmpty ? "暂无" : value)
                     .font(.callout)
                     .lineLimit(8)

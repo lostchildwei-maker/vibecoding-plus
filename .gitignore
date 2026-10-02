@@ -14,3 +14,4 @@ dist-native/
 logs/
 .playwright-mcp/
 .codex/
+__pycache__/

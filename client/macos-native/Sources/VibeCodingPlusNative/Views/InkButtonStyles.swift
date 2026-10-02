@@ -164,5 +164,6 @@ struct InkCheckboxToggleStyle: ToggleStyle {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityValue(configuration.isOn ? "已开启" : "已关闭")
     }
 }

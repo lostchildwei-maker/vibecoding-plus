@@ -17,6 +17,8 @@ targets:
       - path: Sources
       - path: Resources/Assets.xcassets
       - path: Resources/qwen_mlx_worker.py
+      - path: Resources/qwen_tts_mlx_worker.py
+      - path: Resources/local_tts_service.py
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mac20777.vibecodingplus

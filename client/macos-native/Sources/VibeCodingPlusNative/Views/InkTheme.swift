@@ -6,6 +6,11 @@ enum InkTheme {
     static let accent = Color(red: 0.08, green: 0.08, blue: 0.09)
     static let ink = Color(red: 0.12, green: 0.12, blue: 0.13)
     static let paper = Color(red: 0.97, green: 0.97, blue: 0.96)
+    // 表单使用不透明纸面，避免系统深色材质和墙纸改变文字对比度。
+    static let surface = Color.white
+    static let secondaryInk = Color(white: 0.36)
+    static let border = Color(white: 0.55)
+    static let focusRing = Color(nsColor: .keyboardFocusIndicatorColor)
     // 状态用灰阶而非彩色：success 深黑、warning 中深灰、danger 深灰
     static let success = Color(red: 0.18, green: 0.20, blue: 0.18)
     static let warning = Color(red: 0.42, green: 0.40, blue: 0.32)

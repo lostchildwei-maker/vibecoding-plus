@@ -22,6 +22,10 @@ final class AppState: ObservableObject {
     @Published var inlineStatus = ""
     @Published var isBusy = false
     @Published var serviceRunning = false
+    @Published var ttsStatus: SharedTTSStatus?
+    @Published var ttsServiceMessage = ""
+    @Published var ttsServiceBusy = false
+    private var ttsPreviewSound: NSSound?
     @Published var pairingCode = ""
     @Published var otaProgress: [String: (phase: String, pct: Int)] = [:]
 
@@ -106,6 +110,19 @@ final class AppState: ObservableObject {
             return
         }
         await refreshEnvironment()
+        if config.ttsProvider == .qwenMlx || SharedTTSManager.installed {
+            do {
+                let wasInstalled = SharedTTSManager.installed
+                let needsUpdate = SharedTTSManager.runtimeNeedsUpdate
+                let wasRunning = (try? await SharedTTSManager.status()) != nil
+                try SharedTTSManager.configure(config)
+                if !wasInstalled { try await SharedTTSManager.start(config) }
+                else if needsUpdate && wasRunning { try await SharedTTSManager.restart(config) }
+            } catch {
+                ttsServiceMessage = error.localizedDescription
+            }
+            await refreshTTSStatus()
+        }
         if serviceRunning {
             await refreshRuntime()
         }
@@ -209,6 +226,9 @@ final class AppState: ObservableObject {
         do {
             try settingsStore.saveConfig(config)
             try settingsStore.saveDesktopSettings(desktopSettings)
+            if config.ttsProvider == .qwenMlx || SharedTTSManager.installed {
+                try SharedTTSManager.configure(config)
+            }
             syncLoginItem()
             inlineStatus = restart ? "已保存；后台服务会重启，通常几秒内生效" : "已保存"
             if restart, serviceRunning {
@@ -222,6 +242,46 @@ final class AppState: ObservableObject {
 
     func refreshEnvironment() async {
         environmentReport = await checker.check(config: config)
+    }
+
+    func refreshTTSStatus() async {
+        ttsStatus = try? await SharedTTSManager.status()
+    }
+
+    func manageTTS(_ action: String) async {
+        guard !ttsServiceBusy else { return }
+        ttsServiceBusy = true
+        ttsServiceMessage = ""
+        defer { ttsServiceBusy = false }
+        do {
+            switch action {
+            case "start", "restart":
+                try settingsStore.saveConfig(config)
+                if action == "restart" { try await SharedTTSManager.restart(config) }
+                else { try await SharedTTSManager.start(config) }
+                ttsServiceMessage = "共享语音服务已启动"
+            case "stop":
+                try await SharedTTSManager.stop()
+                ttsServiceMessage = "共享语音服务已停止，Hermes 和 Note 4 的语音输出暂停"
+            case "release":
+                try await SharedTTSManager.releaseModel()
+                ttsServiceMessage = "模型内存已释放，下次调用时自动加载"
+            case "test":
+                let url = try await SharedTTSManager.testVoice()
+                ttsPreviewSound?.stop()
+                ttsPreviewSound = NSSound(contentsOf: url, byReference: false)
+                guard ttsPreviewSound?.play() == true else { throw LocalTTSError.failed("无法播放试音") }
+                ttsServiceMessage = "正在播放 Eira 的声音"
+            default: break
+            }
+        } catch {
+            ttsServiceMessage = error.localizedDescription
+        }
+        await refreshTTSStatus()
+    }
+
+    func openTTSLog() {
+        NSWorkspace.shared.open(SharedTTSManager.logURL)
     }
 
     func install(toolId: String) async {

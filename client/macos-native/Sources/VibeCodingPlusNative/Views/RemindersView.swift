@@ -77,7 +77,7 @@ struct RemindersView: View {
                                 .tracking(0.3)
                             Text("启用后，待办会双向同步到选定的提醒事项列表；轮询间隔控制自动同步频率。")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(InkTheme.secondaryInk)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -90,7 +90,7 @@ struct RemindersView: View {
                         Toggle("启用提醒事项同步", isOn: $syncEnabled)
                             .toggleStyle(InkCheckboxToggleStyle())
                         InkFormRow("轮询间隔(秒)") {
-                            TextField("15", value: $pollSec, format: .number).textFieldStyle(.plain)
+                            TextField("15", value: $pollSec, format: .number).textFieldStyle(InkTextFieldStyle())
                         }
                         InkDivider()
                         Text("提醒事项列表（点击选择同步目标）")
@@ -98,7 +98,7 @@ struct RemindersView: View {
                         if state.reminderLists.isEmpty {
                             Text(listsLoaded ? "未找到提醒事项列表，请先在系统中创建提醒" : "正在加载提醒事项列表…")
                                 .font(.callout)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(InkTheme.secondaryInk)
                                 .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
                         } else {
                             VStack(spacing: 4) {
@@ -114,7 +114,7 @@ struct RemindersView: View {
                                             Spacer()
                                             Text("\(list.reminderCount)")
                                                 .font(.caption.monospaced().weight(.semibold))
-                                                .foregroundStyle(.secondary)
+                                                .foregroundStyle(InkTheme.secondaryInk)
                                         }
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 8)
@@ -159,7 +159,7 @@ struct RemindersView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
             Spacer()
             Text(value)
                 .font(.callout.weight(.semibold))

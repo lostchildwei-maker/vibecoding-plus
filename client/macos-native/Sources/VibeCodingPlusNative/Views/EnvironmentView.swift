@@ -82,22 +82,22 @@ struct EnvironmentRow: View {
                     }
                     Text(item.purpose)
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                     if !item.path.isEmpty {
                         Text(item.path)
                             .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(InkTheme.secondaryInk)
                             .textSelection(.enabled)
                     }
                     if !item.version.isEmpty {
                         Text(item.version)
                             .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(InkTheme.secondaryInk)
                     }
                     if !item.note.isEmpty {
                         Text(item.note)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(InkTheme.secondaryInk)
                     }
                 }
                 Spacer(minLength: 20)

@@ -141,6 +141,8 @@ struct AppConfig {
     var qwenTTSReferenceAudio: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/reference-eira.wav"
     var qwenTTSReferenceText: String = "嗯，听到了，这条测试也通了。"
     var qwenTTSCacheDirectory: String = "\(NSHomeDirectory())/Documents/LLM & Tools/语音转换与生成/qwen-tts-mlx/models"
+    var qwenTTSKeepWarm: Bool = false
+    var qwenTTSIdleSeconds: Int = 300
     var lanSharedSecret: String = ""
     var deepSeekApiKey: String = ""
     var deepSeekModel: String = "deepseek-chat"

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D72E1F63B14D45C7A7021A05 /* SharedTTSClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D72E1F63B14D45C7A7021A06 /* SharedTTSClientTests.swift */; };
+		D72E1F63B14D45C7A7021A01 /* SharedTTSManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D72E1F63B14D45C7A7021A02 /* SharedTTSManager.swift */; };
+		D72E1F63B14D45C7A7021A03 /* local_tts_service.py in Resources */ = {isa = PBXBuildFile; fileRef = D72E1F63B14D45C7A7021A04 /* local_tts_service.py */; };
 		075B3D9C4645FCFCFACCFFF6 /* STTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54733654901D308D57343C4F /* STTService.swift */; };
 		9C3AEBBF16504713A70EE2E1 /* LocalQwenMLXSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328811DA24C34CCB9C103B3D /* LocalQwenMLXSession.swift */; };
 		A19E1F63B14D45C7A7021A01 /* SystemTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19E1F63B14D45C7A7021A02 /* SystemTTSService.swift */; };
@@ -73,6 +76,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D72E1F63B14D45C7A7021A06 /* SharedTTSClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTTSClientTests.swift; sourceTree = "<group>"; };
+		D72E1F63B14D45C7A7021A02 /* SharedTTSManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTTSManager.swift; sourceTree = "<group>"; };
+		D72E1F63B14D45C7A7021A04 /* local_tts_service.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = local_tts_service.py; sourceTree = "<group>"; };
 		01CDAB65A30CAA9F677A1C14 /* PlanOptionsExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanOptionsExtractor.swift; sourceTree = "<group>"; };
 		04FF2CF03D3F96E46F1E4604 /* LANAuthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LANAuthTests.swift; sourceTree = "<group>"; };
 		100F9937AAED2DAADE9E92A2 /* RemindersSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersSync.swift; sourceTree = "<group>"; };
@@ -200,6 +206,7 @@
 				328811DA24C34CCB9C103B3D /* LocalQwenMLXSession.swift */,
 				A19E1F63B14D45C7A7021A02 /* SystemTTSService.swift */,
 				B59E1F63B14D45C7A7021A02 /* LocalQwenTTSSession.swift */,
+				D72E1F63B14D45C7A7021A02 /* SharedTTSManager.swift */,
 				85B6FFF1217771E95FD836D7 /* TextInjector.swift */,
 				DB9B42C3AF4B1CE5223B1B42 /* TodoAssistant.swift */,
 				29A2FE6304AC8D694B79E035 /* TodoService.swift */,
@@ -221,6 +228,7 @@
 				251D39D20F6EA1BDDC9D3A5A /* Assets.xcassets */,
 				30A7027DE1BA40A8B15033CA /* qwen_mlx_worker.py */,
 				B59E1F63B14D45C7A7021A04 /* qwen_tts_mlx_worker.py */,
+				D72E1F63B14D45C7A7021A04 /* local_tts_service.py */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -238,6 +246,7 @@
 			isa = PBXGroup;
 			children = (
 				D1548ABB067446FE5F28C56D /* ClaudeTranscriptParserTests.swift */,
+				D72E1F63B14D45C7A7021A06 /* SharedTTSClientTests.swift */,
 				23E35453493D2874791F6AB0 /* CodexRolloutParserTests.swift */,
 				04FF2CF03D3F96E46F1E4604 /* LANAuthTests.swift */,
 				9AC72036BD819BD36C9B385F /* STTProviderResolutionTests.swift */,
@@ -341,6 +350,7 @@
 				5C620212C9EFB80FB94EEEBB /* Assets.xcassets in Resources */,
 				CF1D6F3ED66B418599953EB9 /* qwen_mlx_worker.py in Resources */,
 				B59E1F63B14D45C7A7021A03 /* qwen_tts_mlx_worker.py in Resources */,
+				D72E1F63B14D45C7A7021A03 /* local_tts_service.py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				141BA6B3232DA72CFA1549B0 /* ClaudeTranscriptParserTests.swift in Sources */,
+				D72E1F63B14D45C7A7021A05 /* SharedTTSClientTests.swift in Sources */,
 				E26EC19315A1BA160D6F07BC /* CodexRolloutParserTests.swift in Sources */,
 				E57DB53D0640CAA4E272F052 /* LANAuthTests.swift in Sources */,
 				D737A7DDD72E7FA018C43F76 /* STTProviderResolutionTests.swift in Sources */,
@@ -398,6 +409,7 @@
 				9C3AEBBF16504713A70EE2E1 /* LocalQwenMLXSession.swift in Sources */,
 				A19E1F63B14D45C7A7021A01 /* SystemTTSService.swift in Sources */,
 				B59E1F63B14D45C7A7021A01 /* LocalQwenTTSSession.swift in Sources */,
+				D72E1F63B14D45C7A7021A01 /* SharedTTSManager.swift in Sources */,
 				519DD4A059154AED4C4E3C3F /* ServerConfig.swift in Sources */,
 				E28A7192E8C4912B22FA3664 /* SettingsStore.swift in Sources */,
 				DA12DBF9745FA97363DB2E91 /* SettingsView.swift in Sources */,

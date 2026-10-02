@@ -348,6 +348,29 @@ idf.py -p /dev/cu.usbmodem* flash
 
 ---
 
+## 定制版共享本地语音（2026-10-03）
+
+选择 Qwen 本地语音时，Mac 客户端和 Hermes 共用一个 Qwen3-TTS 模型进程和 Eira 参考音色。模型、参考音频和参考文字在客户端设置中统一修改；保存后两个调用方使用同一份配置。
+
+- 管理入口：设置 → 共享语音服务，可启动、停止、重启、试音、释放模型和查看日志。
+- 服务由用户级 macOS LaunchAgent `com.mac20777.vibecodingplus.tts` 托管，登录后启动，退出客户端后仍可供 Hermes 使用。
+- 本地地址为 `http://127.0.0.1:18643`，仅接受本机应用调用；TTS 接入不需要云端 API Key。
+- 默认按需加载模型，空闲 300 秒后结束模型进程，保留轻量的服务入口。开启“保持模型加载”会取消空闲释放。
+- 服务配置及运行资源在 `~/Library/Application Support/vibecoding-plus/shared-tts/`，权限为私有。不要提交配置和备份。
+- Hermes 使用官方命令 TTS 接口，provider 为 `vibecoding-local`；适配命令只负责请求服务，不会自行加载模型。现有其他 provider 参数仍保留。
+- 首次安装用已配置的 Qwen Python 运行 `scripts/install-shared-tts.py --backup-root /绝对路径/私有备份目录`。安装器先备份 Hermes 配置、现有语音服务和启动项，确认服务就绪后再切换 Hermes；更改后用 `hermes gateway restart` 加载配置。
+- 服务回归检查为 `scripts/test-shared-tts.py SharedTTSTests`。`SHARED_TTS_LIVE=1` 检查实际模型及 Hermes 官方适配接口；`SHARED_TTS_INSTALLED=1` 检查正式安装的默认 Hermes 工具。可用 `HERMES_TEST_ENVIRONMENT` 指定 Hermes 运行环境目录。
+
+本次实际 Qwen 测试的模型驻留内存约 4.5 GB，进程峰值约 10.8 GB；这不是其他文本长度的峰值上限。并发请求排队，共用一份模型。当前 Note 4 语音仍需完整合成后播放，设备固件无需随客户端更新。
+
+本次交付：正式安装位置 `/Applications/VibeCoding Plus.app`，版本 `0.3.0 (1)`，构建时间 `2026-10-03 01:22:34 +0800`。首次替换前的原客户端备份为工作区 `backups/vibecoding-plus/20261003-010243.lTmDHO/`，最终安装备份为 `backups/vibecoding-plus/20261003-012318.bMevAv/`，Hermes 配置切换前备份为 `backups/vibecoding-plus/20261003-011718-shared-tts-hd92d8h6/`。客户端原有测试 18 项通过，服务回归测试 6 项通过，实际 Qwen、默认 Hermes TTS、客户端 Swift 音频完整性、界面重启及退出客户端后的独立调用均已验证。Note 4 音频格式已验证，设备端扬声器播放未在本次交付中测试。
+
+### 桌面可读性修复（2026-10-03）
+
+浅色纸面主题与原生窗口、菜单、工具栏统一为浅色外观；内容面板使用不透明白底，避免系统深色材质与固定纸色混用。增强表单标签、内容、边框及辅助文字，加入输入焦点轮廓与目录按钮说明。设置页保存栏固定在底部并支持 ⌘S，日志区域随窗口剩余高度布局，修正 Hermes“立即发送”文案与滚动时标题栏重叠。
+
+已逐页检查全部 8 个页面，并验证中文、英文、数字草稿及 Tab 切换；现有测试 18 项通过，2 项需额外语音环境的检查跳过。正式客户端仍为 `/Applications/VibeCoding Plus.app`，版本 `0.3.0 (1)`，最终构建时间 `2026-10-03 01:44:01 +0800`。本次修改前备份为工作区 `backups/vibecoding-plus/20261003-013949.siNHlD/`，最终安装前备份为 `backups/vibecoding-plus/20261003-014401.5bFLwb/`。检查记录与截图位于工作区 `artifacts/ui-usability-20261003/report.html`。共享 TTS 健康检查通过；本次未刷写固件。
+
 ## 安全建议
 
 - 不要提交 `.env`、API Key 等敏感信息到版本库

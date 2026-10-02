@@ -22,7 +22,7 @@ struct TodoView: View {
                         }
                         Text("\(state.todos.count) 进行中")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(InkTheme.secondaryInk)
                     }
                 }
             )
@@ -31,11 +31,11 @@ struct TodoView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 10) {
                         TextField("输入待办内容，回车快速添加", text: $title)
-                            .textFieldStyle(.plain)
+                            .textFieldStyle(InkTextFieldStyle())
                             .onSubmit { add() }
                             .padding(.horizontal, 12)
                             .frame(height: 38)
-                            .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 9))
+                            .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 9))
                             .overlay(RoundedRectangle(cornerRadius: 9).stroke(.primary.opacity(0.18), lineWidth: 1))
 
                         dueDateChip
@@ -113,7 +113,7 @@ struct TodoView: View {
             }
             .padding(.horizontal, 8)
             .frame(height: 38)
-            .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 9))
+            .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 9))
             .overlay(RoundedRectangle(cornerRadius: 9).stroke(InkTheme.ink.opacity(0.3), lineWidth: 1))
         } else if let date = dueDate {
             Button {
@@ -126,7 +126,7 @@ struct TodoView: View {
                         .font(.callout.weight(.medium))
                     Image(systemName: "xmark.circle.fill")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(InkTheme.secondaryInk)
                 }
                 .padding(.horizontal, 10)
                 .frame(height: 38)
@@ -177,12 +177,12 @@ struct TodoSection: View {
         InkPanel(title: title, symbol: archived ? "archivebox" : "checklist", accessory: AnyView(
             Text("\(items.count)")
                 .font(.caption.monospaced().weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(InkTheme.secondaryInk)
         )) {
             if items.isEmpty {
                 Text(archived ? "暂无归档" : "暂无待办")
                     .font(.callout)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(InkTheme.secondaryInk)
                     .frame(maxWidth: .infinity, minHeight: 90, alignment: .center)
             } else {
                 LazyVStack(spacing: 8) {
@@ -219,10 +219,10 @@ struct TodoRow: View {
 
                 if isEditing {
                     TextField("", text: $editTitle)
-                        .textFieldStyle(.plain)
+                        .textFieldStyle(InkTextFieldStyle())
                         .padding(.horizontal, 8)
                         .frame(height: 30)
-                        .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 7))
+                        .background(InkTheme.surface, in: RoundedRectangle(cornerRadius: 7))
                         .overlay(RoundedRectangle(cornerRadius: 7).stroke(InkTheme.ink.opacity(0.5), lineWidth: 1))
                         .onSubmit { saveEdit() }
                     Button("保存") { saveEdit() }.inkProminentButton()
@@ -237,7 +237,7 @@ struct TodoRow: View {
                             if let dueAt = item.dueAt, !dueAt.isEmpty {
                                 Label(formatDueDate(dueAt), systemImage: "calendar")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(InkTheme.secondaryInk)
                             }
                             if item.appleId != nil {
                                 Label("提醒", systemImage: "bell.fill")
